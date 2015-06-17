@@ -26,7 +26,6 @@ public class Arguments {
 	public String namespace;
 	public String setName;
 	public Workload workload;
-	public StorageType storeType;
 	public DBObjectSpec[] objectSpec;
 	public Policy readPolicy;
 	public WritePolicy writePolicy;

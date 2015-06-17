@@ -177,10 +177,6 @@ public class Main implements Log.Callback {
 		options.addOption("D", "debug", false, "Run benchmarks in debug mode.");
 		options.addOption("u", "usage", false, "Print usage.");
 
-		options.addOption("ST", "storeType", true, 
-			"Defines data store type to run. Values:  KVS | LLIST | LSTACK" 
-			);
-
 		options.addOption("BT", "batchThreads", true,
 			"Maximum number of concurrent batch sub-threads for each batch command.\n" + 
 			"1   : Run each batch node command sequentially.\n" +
