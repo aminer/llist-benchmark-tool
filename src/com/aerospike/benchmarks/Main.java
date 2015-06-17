@@ -34,9 +34,7 @@ import org.apache.commons.cli.PosixParser;
 
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.policy.CommitLevel;
-import com.aerospike.client.policy.ConsistencyLevel;
 import com.aerospike.client.policy.RecordExistsAction;
-import com.aerospike.client.policy.Replica;
 import com.aerospike.client.Log;
 import com.aerospike.client.Log.Level;
 import com.aerospike.client.async.AsyncClient;
@@ -75,10 +73,9 @@ public class Main implements Log.Callback {
 	private int nKeys;
 	private int startKey;
 	private int nThreads;
-	private int asyncTaskThreads;
 	private boolean asyncEnabled;
 	private boolean initialize;
-	private String filepath;
+	//private String filepath;
 
 	private AsyncClientPolicy clientPolicy = new AsyncClientPolicy();
 	private CounterStore counters = new CounterStore();
@@ -146,18 +143,12 @@ public class Main implements Log.Callback {
 			);
 		
 		options.addOption("T", "timeout", true, "Set read and write transaction timeout in milliseconds.");
-		options.addOption("readTimeout", true, "Set read transaction timeout in milliseconds.");
-		options.addOption("writeTimeout", true, "Set write transaction timeout in milliseconds.");
 	
 		options.addOption("maxRetries", true, "Maximum number of retries before aborting the current transaction.");
 		options.addOption("sleepBetweenRetries", true, 
 			"Milliseconds to sleep between retries if a transaction fails and the timeout was not exceeded. " +
 			"Enter zero to skip sleep."	
 			);
-		options.addOption("consistencyLevel", true, 
-				"How replicas should be consulted in a read operation to provide the desired consistency guarantee. " +
-				"Values:  one | all.  Default: one"	
-				);
 		options.addOption("commitLevel", true, 
 				"Desired replica consistency guarantee when committing a transaction on the server. " +
 				"Values:  all | master.  Default: all"	
@@ -186,11 +177,6 @@ public class Main implements Log.Callback {
 		options.addOption("D", "debug", false, "Run benchmarks in debug mode.");
 		options.addOption("u", "usage", false, "Print usage.");
 
-		options.addOption("B", "batchSize", true, 
-			"Enable batch mode with number of records to process in each batch get call. " + 
-			"Batch mode is valid only for RU (read update) workloads. Batch mode is disabled by default."
-			);
-
 		options.addOption("ST", "storeType", true, 
 			"Defines data store type to run. Values:  KVS | LLIST | LSTACK" 
 			);
@@ -201,14 +187,7 @@ public class Main implements Log.Callback {
 			"0   : Run all batch node commands in parallel.\n" +
 			"> 1 : Run maximum batchThreads in parallel.  When a node command finshes, start a new one until all finished."
 			);
-		
-		options.addOption("prole", false, "Distribute reads across proles in round-robin fashion.");
 
-		options.addOption("a", "async", false, "Benchmark asynchronous methods instead of synchronous methods.");
-		options.addOption("C", "asyncMaxCommands", true, "Maximum number of concurrent asynchronous database commands.");
-		options.addOption("E", "asyncSelectorTimeout", true, "Asynchronous select() timeout in milliseconds.");
-		options.addOption("W", "asyncSelectorThreads", true, "Number of selector threads when running in asynchronous mode.");
-		options.addOption("V", "asyncTaskThreads", true, "Number of asynchronous tasks. Use zero for unbounded thread pool.");
 		options.addOption("F", "keyFile", true, "File path to read the keys for read operation.");
 		options.addOption("KT", "keyType", true, "Type of the key(String/Integer) in the file, default is String");
 
@@ -226,17 +205,9 @@ public class Main implements Log.Callback {
 			throw new Exception("Unexpected arguments: " + Arrays.toString(extra));
 		}
 		
-        if (line.hasOption("async")) {
-        	this.asyncEnabled = true;
-        	args.readPolicy = clientPolicy.asyncReadPolicyDefault;
-        	args.writePolicy = clientPolicy.asyncWritePolicyDefault;
-        	args.batchPolicy = clientPolicy.batchPolicyDefault;  // async does not need batch policy.
-        }
-        else {
-        	args.readPolicy = clientPolicy.readPolicyDefault;
-        	args.writePolicy = clientPolicy.writePolicyDefault;
-        	args.batchPolicy = clientPolicy.batchPolicyDefault;
-        }
+		args.readPolicy = clientPolicy.readPolicyDefault;
+        args.writePolicy = clientPolicy.writePolicyDefault;
+        args.batchPolicy = clientPolicy.batchPolicyDefault;
 
         if (line.hasOption("hosts")) {
 			this.hosts = line.getOptionValue("hosts").split(",");
@@ -293,7 +264,7 @@ public class Main implements Log.Callback {
 		}
 		
 		//Variables setting in case of command arguments passed with keys in File
-		if (line.hasOption("keyFile")) {
+		/*if (line.hasOption("keyFile")) {
 			this.filepath = line.getOptionValue("keyFile");
 			// Load the file
 			keyList = Utils.readKeyFromFile(filepath);
@@ -324,8 +295,7 @@ public class Main implements Log.Callback {
 			else {
 				args.keyType = KeyType.STRING;
 			}
-
-		}
+		}*/
 
 		if (line.hasOption("bins")) {
 			args.nBins = Integer.parseInt(line.getOptionValue("bins"));
@@ -442,17 +412,7 @@ public class Main implements Log.Callback {
 			args.readPolicy.timeout = timeout;
 			args.writePolicy.timeout = timeout;
 			args.batchPolicy.timeout = timeout;
-		}			 
-
-		if (line.hasOption("readTimeout")) {
-			int timeout = Integer.parseInt(line.getOptionValue("readTimeout"));
-			args.readPolicy.timeout = timeout;
-			args.batchPolicy.timeout = timeout;
-		}			 
-
-		if (line.hasOption("writeTimeout")) {
-			args.writePolicy.timeout = Integer.parseInt(line.getOptionValue("writeTimeout"));
-		}			 
+		}			 		 
 
 		if (line.hasOption("maxRetries")) {
 			int maxRetries = Integer.parseInt(line.getOptionValue("maxRetries"));
@@ -468,19 +428,6 @@ public class Main implements Log.Callback {
 			args.batchPolicy.sleepBetweenRetries = sleepBetweenRetries;
 		}
 		
-		if (line.hasOption("consistencyLevel")) {
-			String level = line.getOptionValue("consistencyLevel");
-			
-			if (level.equals("all")) {
-				args.readPolicy.consistencyLevel = ConsistencyLevel.CONSISTENCY_ALL;
-				args.writePolicy.consistencyLevel = ConsistencyLevel.CONSISTENCY_ALL;
-				args.batchPolicy.consistencyLevel = ConsistencyLevel.CONSISTENCY_ALL;				
-			}
-			else if (! level.equals("one")) {
-				throw new Exception("Invalid consistencyLevel: " + level);
-			}
-		}
-
 		if (line.hasOption("commitLevel")) {
 			String level = line.getOptionValue("commitLevel");
 			
@@ -492,11 +439,6 @@ public class Main implements Log.Callback {
 			}
 		}
 		
-		if (line.hasOption("prole")) {
-			clientPolicy.requestProleReplicas = true;
-			args.readPolicy.replica = Replica.MASTER_PROLES;
-		}
-
 		if (line.hasOption("threads")) {
 			this.nThreads = Integer.parseInt(line.getOptionValue("threads"));
 			
@@ -519,47 +461,10 @@ public class Main implements Log.Callback {
 		if (line.hasOption("debug")) {
 			args.debug = true;
 		}
-
-        if (line.hasOption("batchSize")) {
-        	args.batchSize =  Integer.parseInt(line.getOptionValue("batchSize"));
-        }
-
-		args.storeType = StorageType.KVS;
-        if (line.hasOption("storeType")) {
-        	String storetype = line.getOptionValue("storeType");
-			if (storetype.equals("LLIST")) {
-				args.storeType = StorageType.LLIST;
-			} else if (storetype.equals("LSTACK")) {
-				args.storeType = StorageType.LSTACK;
-			}
-        }
         
 		if (line.hasOption("batchThreads")) {
 			args.batchPolicy.maxConcurrentThreads = Integer.parseInt(line.getOptionValue("batchThreads"));
 		}			 
-
-		if (line.hasOption("asyncMaxCommands")) {
-        	this.clientPolicy.asyncMaxCommands =  Integer.parseInt(line.getOptionValue("asyncMaxCommands"));
-        }
-        
-        if (line.hasOption("asyncSelectorTimeout")) {
-        	this.clientPolicy.asyncSelectorTimeout =  Integer.parseInt(line.getOptionValue("asyncSelectorTimeout"));
-        }
-
-        if (line.hasOption("asyncSelectorThreads")) {
-        	this.clientPolicy.asyncSelectorThreads =  Integer.parseInt(line.getOptionValue("asyncSelectorThreads"));
-        }
-        
-        if (line.hasOption("asyncTaskThreads")) {
-        	this.asyncTaskThreads = Integer.parseInt(line.getOptionValue("asyncTaskThreads"));
-        	
-        	if (asyncTaskThreads == 0) {
-        		this.clientPolicy.asyncTaskThreadPool = Executors.newCachedThreadPool();
-        	}
-        	else {           		
-        		this.clientPolicy.asyncTaskThreadPool = Executors.newFixedThreadPool(asyncTaskThreads);
-        	}
-        }
         
         if (line.hasOption("latency")) {
 			String[] latencyOpts = line.getOptionValue("latency").split(",");
@@ -604,7 +509,7 @@ public class Main implements Log.Callback {
 			System.out.println("read policy: timeout: " + args.readPolicy.timeout
 				+ ", maxRetries: " + args.readPolicy.maxRetries 
 				+ ", sleepBetweenRetries: " + args.readPolicy.sleepBetweenRetries
-				+ ", consistencyLevel: " + args.readPolicy.consistencyLevel
+				//+ ", consistencyLevel: " + args.readPolicy.consistencyLevel
 				+ ", replica: " + args.readPolicy.replica
 				+ ", reportNotFound: " + args.reportNotFound);
 		}
@@ -669,35 +574,18 @@ public class Main implements Log.Callback {
 	}
 
 	public void runBenchmarks() throws Exception {
-		if (this.asyncEnabled) {
-			AsyncClient client = new AsyncClient(clientPolicy, hosts[0], port);		
+		AerospikeClient client = new AerospikeClient(clientPolicy, hosts[0], port);		
 
-			try {
-				if (initialize) {
-					doAsyncInserts(client); 
-				} 
-				else {
-					doAsyncRWTest(client); 
-				}
+		try {
+			if (initialize) {
+				doInserts(client); 
+			} 
+			else {
+				doRWTest(client); 
 			}
-			finally {
-				client.close();
-			}			
 		}
-		else {			
-			AerospikeClient client = new AerospikeClient(clientPolicy, hosts[0], port);		
-
-			try {
-				if (initialize) {
-					doInserts(client); 
-				} 
-				else {
-					doRWTest(client); 
-				}
-			}
-			finally {
-				client.close();
-			}
+		finally {
+			client.close();
 		}
 	}
 
@@ -716,24 +604,7 @@ public class Main implements Log.Callback {
 		}	
 		collectInsertStats();
 		es.shutdownNow();
-	}
-
-	private void doAsyncInserts(AsyncClient client) throws Exception {	
-		ExecutorService es = Executors.newFixedThreadPool(this.nThreads);
-
-		// Create N insert tasks
-		int ntasks = this.nThreads < this.nKeys ? this.nThreads : this.nKeys;
-		int start = this.startKey;
-		int keysPerTask = this.nKeys / ntasks + 1;
-
-		for (int i=0 ; i<ntasks; i++) {
-			InsertTask it = new InsertTaskAsync(client, args, counters, start, keysPerTask); 			
-			es.execute(it);
-			start += keysPerTask;
-		}
-		collectInsertStats();
-		es.shutdownNow();
-	}
+	} 
 
 	private void collectInsertStats() throws Exception {	
 		int total = 0;
@@ -781,26 +652,6 @@ public class Main implements Log.Callback {
 		es.shutdown();
 	}
 
-	private void doAsyncRWTest(AsyncClient client) throws Exception {
-		ExecutorService es = Executors.newFixedThreadPool(this.nThreads);
-		RWTask[] tasks = new RWTask[this.nThreads];
-		
-		for (int i = 0 ; i < this.nThreads; i++) {
-			RWTask rt;
-			if (args.validate) {
-				int tstart = this.startKey + ((int) (this.nKeys*(((float) i)/this.nThreads)));			
-				int tkeys = (int) (this.nKeys*(((float) (i+1))/this.nThreads)) - (int) (this.nKeys*(((float) i)/this.nThreads));
-				rt = new RWTaskAsync(client, args, counters, tstart, tkeys);
-			} else {
-				rt = new RWTaskAsync(client, args, counters, this.startKey, this.nKeys);
-			}
-			tasks[i] = rt;
-			es.execute(rt);
-		}
-		collectRWStats(tasks, client);
-		es.shutdown();
-	}
-	
 	private void collectRWStats(RWTask[] tasks, AsyncClient client) throws Exception {		
 		// wait for all the tasks to finish setting up for validation
 		if (args.validate) {

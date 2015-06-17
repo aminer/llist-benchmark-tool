@@ -25,7 +25,6 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
 import com.aerospike.client.large.LargeList;
-import com.aerospike.client.large.LargeStack;
 
 
 public final class InsertTaskSync extends InsertTask {
@@ -74,30 +73,5 @@ public final class InsertTaskSync extends InsertTask {
 		// Add entry
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		list.add(Value.get(entry));
-	}
-		
-	protected void largeStackPush(Key key, Value value) throws AerospikeException {
-		long begin = System.currentTimeMillis();
-		if (counters.write.latency != null) {
-			largeStackPush(key, value, begin);
-			long elapsed = System.currentTimeMillis() - begin;
-			counters.write.count.getAndIncrement();			
-			counters.write.latency.add(elapsed);
-		}
-		else {
-			largeStackPush(key, value, begin);
-			counters.write.count.getAndIncrement();			
-		}
-	}
-	
-	private void largeStackPush(Key key, Value value, long timestamp) throws AerospikeException {
-		// Create entry
-		Map<String,Value> entry = new HashMap<String,Value>();
-		entry.put("key", Value.get(timestamp));
-		entry.put("log", value);
-
-		// Push entry
-		LargeStack lstack = client.getLargeStack(args.writePolicy, key, "stackltracker", null);
-		lstack.push(Value.get(entry));
 	}
 }

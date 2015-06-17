@@ -244,19 +244,7 @@ public abstract class RWTask implements Runnable {
 		Bin[] bins = args.getBins(random, multiBin);
 		
 		try {
-			switch (args.storeType) {
-			case KVS:
-				put(key, bins);
-				break;
-	
-			case LLIST:
-				largeListAdd(key, bins[0].value);
-				break;
-
-			case LSTACK:
-				largeStackPush(key, bins[0].value);
-				break;
-			}
+			largeListAdd(key, bins[0].value);
 			
 			if (args.validate) {
 				this.expectedValues[keyIdx].write(bins);
@@ -299,38 +287,13 @@ public abstract class RWTask implements Runnable {
 		try {
 			Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
 			
-			if (multiBin) {
-				switch (args.storeType) {
-				case KVS:
-					// Read all bins, maybe validate
-					get(key);			
-					break;
-					
-				case LLIST:
-					largeListGet(key);
-					break;
-
-				case LSTACK:
-					largeStackPeek(key);
-					break;
-				}
+			/*if (multiBin) {
+				largeListGet(key);
 			} 
 			else {
-				switch (args.storeType) {
-				case KVS:
-					// Read one bin, maybe validate
-					get(key, "0");
-					break;
-					
-				case LLIST:
-					largeListGet(key);
-					break;
-
-				case LSTACK:
-					largeStackPeek(key);
-					break;
-				}
-			}
+				largeListGet(key);
+			}*/
+			largeListGet(key);
 		}
 		catch (AerospikeException ae) {
 			readFailure(ae);
@@ -495,7 +458,4 @@ public abstract class RWTask implements Runnable {
 
 	protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
 	protected abstract void largeListGet(Key key) throws AerospikeException;
-
-	protected abstract void largeStackPush(Key key, Value value) throws AerospikeException;
-	protected abstract void largeStackPeek(Key key) throws AerospikeException;
 }

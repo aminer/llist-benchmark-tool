@@ -46,19 +46,7 @@ public abstract class InsertTask implements Runnable {
 					Key key = new Key(args.namespace, args.setName, keyStart + i);
 					Bin[] bins = args.getBins(random, true);
 					
-					switch (args.storeType) {
-					case KVS:
-						put(key, bins);
-						break;
-						
-					case LLIST:
-						largeListAdd(key, bins[0].value);
-						break;
-
-					case LSTACK:
-						largeStackPush(key, bins[0].value);
-						break;
-					}
+					largeListAdd(key, bins[0].value);
 				}
 				catch (AerospikeException ae) {
 					writeFailure(ae);
@@ -110,5 +98,4 @@ public abstract class InsertTask implements Runnable {
 	
 	protected abstract void put(Key key, Bin[] bins) throws AerospikeException;
 	protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
-	protected abstract void largeStackPush(Key key, Value value) throws AerospikeException;
 }

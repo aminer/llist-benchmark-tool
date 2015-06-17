@@ -21,17 +21,7 @@ package com.aerospike.benchmarks;
  */
 public enum StorageType {
 	/**
-	 * Simple KVS
-	 */
-	KVS,
-	
-	/**
 	 * LLIST operations are add and get
 	 */
-	LLIST,
-	
-	/**
-	 * LSTACK operation are push and pop
-	 */
-	LSTACK
+	LLIST
 }
