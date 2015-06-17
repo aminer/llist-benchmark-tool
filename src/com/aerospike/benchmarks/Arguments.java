@@ -43,6 +43,9 @@ public class Arguments {
 	public KeyType keyType;
 	public Bin[] fixedBins;
 	public Bin[] fixedBin;
+	public int pageSize;
+	public int itemCount;
+	public int itemSize;
 
 	public void setFixedBins() {
 		// Fixed values are used when the extra random call overhead is not wanted

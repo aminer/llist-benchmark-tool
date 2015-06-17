@@ -187,6 +187,10 @@ public class Main implements Log.Callback {
 		options.addOption("F", "keyFile", true, "File path to read the keys for read operation.");
 		options.addOption("KT", "keyType", true, "Type of the key(String/Integer) in the file, default is String");
 
+		options.addOption("PS", "pageSize", true, "Page size in bytes.");
+		options.addOption("IC", "itemCount", true, "Number of items in the LDT.");
+		options.addOption("IS", "itemSize", true, "Item size in bytes.");
+		
 		// parse the command line arguments
 		CommandLineParser parser = new PosixParser();
 		CommandLine line = parser.parse(options, commandLineArgs);		
@@ -233,6 +237,18 @@ public class Main implements Log.Callback {
 					clientPolicy.password = new String(pass);
 				}
 			}
+		}
+		
+		if (line.hasOption("pageSize")) {
+			args.pageSize = Integer.parseInt(line.getOptionValue("pageSize"));
+		}
+				
+		if (line.hasOption("itemCount")) {
+			args.itemCount = Integer.parseInt(line.getOptionValue("itemCount"));
+		}
+				
+		if (line.hasOption("itemSize")) {
+			args.itemSize = Integer.parseInt(line.getOptionValue("itemSize"));
 		}
 
 		if (line.hasOption("namespace")) {
