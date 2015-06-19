@@ -73,9 +73,7 @@ public class Main implements Log.Callback {
 	private int nKeys;
 	private int startKey;
 	private int nThreads;
-	private boolean asyncEnabled;
 	private boolean initialize;
-	//private String filepath;
 
 	private AsyncClientPolicy clientPolicy = new AsyncClientPolicy();
 	private CounterStore counters = new CounterStore();
@@ -184,11 +182,9 @@ public class Main implements Log.Callback {
 			"> 1 : Run maximum batchThreads in parallel.  When a node command finshes, start a new one until all finished."
 			);
 
-		options.addOption("KT", "keyType", true, "Type of the key(String/Integer) in the file, default is String");
-
-		options.addOption("PS", "pageSize", true, "Page size in bytes.");
-		options.addOption("IC", "itemCount", true, "Number of items in the LDT.");
-		options.addOption("IS", "itemSize", true, "Item size in bytes.");
+		options.addOption("PS", "pageSize", true, "Page size in bytes. Default: 4K");
+		options.addOption("IC", "itemCount", true, "Number of items in the LDT. Default: 100");
+		options.addOption("IS", "itemSize", true, "Item size in bytes. Default: 8");
 		
 		// parse the command line arguments
 		CommandLineParser parser = new PosixParser();
@@ -241,13 +237,22 @@ public class Main implements Log.Callback {
 		if (line.hasOption("pageSize")) {
 			args.pageSize = Integer.parseInt(line.getOptionValue("pageSize"));
 		}
+		else {
+			args.pageSize = 4; // Default LDT page size.
+		}
 				
 		if (line.hasOption("itemCount")) {
 			args.itemCount = Integer.parseInt(line.getOptionValue("itemCount"));
 		}
+		else {
+			args.itemCount = 4; // Default LDT item count.
+		}
 			
 		if (line.hasOption("itemSize")) {
 			args.itemSize = Integer.parseInt(line.getOptionValue("itemSize"));
+		}
+		else {
+			args.itemSize = 8; // Default LDT item size.
 		}
 
 		if (line.hasOption("namespace")) {
@@ -274,40 +279,6 @@ public class Main implements Log.Callback {
 			this.startKey = Integer.parseInt(line.getOptionValue("startkey"));
 		}
 		
-		//Variables setting in case of command arguments passed with keys in File
-		/*if (line.hasOption("keyFile")) {
-			this.filepath = line.getOptionValue("keyFile");
-			// Load the file
-			keyList = Utils.readKeyFromFile(filepath);
-			if (keyList.isEmpty()) {
-				throw new Exception("File : '" + filepath + "' is empty,this file can't be processed.");
-			}
-			this.nKeys = keyList.size();
-			this.startKey = 0;
-			args.validate = false;
-			
-			if (line.hasOption("keyType")) {
-				String keyType = line.getOptionValue("keyType");
-				
-				if (keyType.equals("S")) {
-					args.keyType = KeyType.STRING;
-				}
-				else if (keyType.equals("I")) {
-					if (Utils.isNumeric(keyList.get(0))) {
-						args.keyType = KeyType.INTEGER;
-					} else {
-						throw new Exception("Invalid keyType '"+keyType+"' Key type doesn't match with file content type.");
-					}
-				}
-				else {
-					throw new Exception("Invalid keyType: "+keyType);
-				}	
-			}
-			else {
-				args.keyType = KeyType.STRING;
-			}
-		}*/
-
 		if (line.hasOption("bins")) {
 			args.nBins = Integer.parseInt(line.getOptionValue("bins"));
 		}
@@ -516,7 +487,6 @@ public class Main implements Log.Callback {
 			System.out.println("read policy: timeout: " + args.readPolicy.timeout
 				+ ", maxRetries: " + args.readPolicy.maxRetries 
 				+ ", sleepBetweenRetries: " + args.readPolicy.sleepBetweenRetries
-				//+ ", consistencyLevel: " + args.readPolicy.consistencyLevel
 				+ ", replica: " + args.readPolicy.replica
 				+ ", reportNotFound: " + args.reportNotFound);
 		}
@@ -531,15 +501,6 @@ public class Main implements Log.Callback {
 				+ ", batch threads: " + args.batchPolicy.maxConcurrentThreads);
 		}
 		
-		if (this.asyncEnabled) {
-			String threadPoolName = (clientPolicy.asyncTaskThreadPool == null)? "none" : clientPolicy.asyncTaskThreadPool.getClass().getName();
-			System.out.println("Async: MaxConnTotal " +  clientPolicy.asyncMaxCommands
-				+ ", MaxConnAction: " + clientPolicy.asyncMaxCommandAction
-				+ ", SelectorTimeout: " + clientPolicy.asyncSelectorTimeout
-				+ ", SelectorThreads: " + clientPolicy.asyncSelectorThreads
-				+ ", TaskThreadPool: " + threadPoolName);
-		}
-
 		int binCount = 0;
 		
 		for (DBObjectSpec spec : args.objectSpec) {
