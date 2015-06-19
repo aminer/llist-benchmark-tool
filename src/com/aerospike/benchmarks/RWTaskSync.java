@@ -87,32 +87,9 @@ public class RWTaskSync extends RWTask {
 
 		// Add entry
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
+		list.setPageSize(args.pageSize); // Set the page size.
 		list.add(Value.get(entry));
-	}
-
-	protected void largeStackPush(Key key, Value value) throws AerospikeException {
-		long begin = System.currentTimeMillis();
-		if (counters.write.latency != null) {
-			largeStackPush(key, value, begin);
-			long elapsed = System.currentTimeMillis() - begin;
-			counters.write.count.getAndIncrement();			
-			counters.write.latency.add(elapsed);
-		}
-		else {
-			largeStackPush(key, value, begin);
-			counters.write.count.getAndIncrement();			
-		}
-	}
-
-	private void largeStackPush(Key key, Value value, long timestamp) throws AerospikeException {
-		// Create entry
-		Map<String,Value> entry = new HashMap<String,Value>();
-		entry.put("key", Value.get(timestamp));
-		entry.put("log", value);
-
-		// Push entry
-		LargeStack lstack = client.getLargeStack(args.writePolicy, key, "stackltracker", null);
-		lstack.push(Value.get(entry));
+		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 	}
 
 	protected void get(Key key, String binName) throws AerospikeException {
@@ -184,6 +161,7 @@ public class RWTaskSync extends RWTask {
 	protected void largeListGet(Key key) throws AerospikeException {
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		List<?> results;
+		
 		long begin = System.currentTimeMillis();
 		if (counters.read.latency != null) {
 			results = list.range(Value.get(1000), Value.get(begin));
@@ -193,21 +171,7 @@ public class RWTaskSync extends RWTask {
 		else {
 			results = list.range(Value.get(1000), Value.get(begin));
 		}
-		processLargeRead(key, results);
-	}
-
-	protected void largeStackPeek(Key key) throws AerospikeException {
-		LargeStack lstack = client.getLargeStack(args.writePolicy, key, "stackltracker", null);
-		List<?> results;
-		if (counters.read.latency != null) {
-			long begin = System.currentTimeMillis();
-			results = lstack.peek(1);
-			long elapsed = System.currentTimeMillis() - begin;
-			counters.read.latency.add(elapsed);
-		}
-		else {
-			results = lstack.peek(1);
-		}
+		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 		processLargeRead(key, results);
 	}
 }

@@ -122,7 +122,9 @@ public abstract class RWTask implements Runnable {
 	}
 	
 	private void readUpdate() {
-		if (random.nextInt(100) < args.readPct) {
+		int rand = random.nextInt(100);
+		//if (random.nextInt(100) < args.readPct) {
+		if (rand < args.readPct) {
 			boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
 			
 			if (args.batchSize <= 1) {
@@ -244,7 +246,9 @@ public abstract class RWTask implements Runnable {
 		Bin[] bins = args.getBins(random, multiBin);
 		
 		try {
-			largeListAdd(key, bins[0].value);
+			for (int j = 0; j < args.itemCount; j++) {
+				largeListAdd(key, bins[0].value);
+			}
 			
 			if (args.validate) {
 				this.expectedValues[keyIdx].write(bins);

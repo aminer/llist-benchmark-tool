@@ -46,7 +46,15 @@ public abstract class InsertTask implements Runnable {
 					Key key = new Key(args.namespace, args.setName, keyStart + i);
 					Bin[] bins = args.getBins(random, true);
 					
-					largeListAdd(key, bins[0].value);
+					for (int j = 0; j < args.itemCount; j++) {
+						largeListAdd(key, bins[0].value);
+					}
+					
+					System.out.println("Inserting: " + bins[0].value);
+					
+					/*if (i == keyCount - 1) {
+						printfConfig(key);
+					}*/
 				}
 				catch (AerospikeException ae) {
 					writeFailure(ae);
@@ -96,6 +104,8 @@ public abstract class InsertTask implements Runnable {
 		}
 	}
 	
-	protected abstract void put(Key key, Bin[] bins) throws AerospikeException;
+	//protected abstract void put(Key key, Bin[] bins) throws AerospikeException;
 	protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
+	
+	protected abstract void printfConfig(Key key) throws AerospikeException;
 }

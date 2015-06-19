@@ -57,10 +57,10 @@ public class Arguments {
 
 	public Bin[] getBins(RandomShift random, boolean multiBin) {
 		if (fixedBins != null) {
-		    return (multiBin)? fixedBins : fixedBin;
+		    return (multiBin) ? fixedBins : fixedBin;
 		}
 		
-		int binCount = (multiBin)? nBins : 1;	
+		int binCount = (multiBin) ? nBins : 1;
 		Bin[] bins = new Bin[binCount];
 		int specLength = objectSpec.length;
 		

@@ -246,7 +246,7 @@ public class Main implements Log.Callback {
 		if (line.hasOption("itemCount")) {
 			args.itemCount = Integer.parseInt(line.getOptionValue("itemCount"));
 		}
-				
+			
 		if (line.hasOption("itemSize")) {
 			args.itemSize = Integer.parseInt(line.getOptionValue("itemSize"));
 		}
@@ -607,7 +607,9 @@ public class Main implements Log.Callback {
 		// Create N insert tasks
 		int ntasks = this.nThreads < this.nKeys ? this.nThreads : this.nKeys;
 		int start = this.startKey;
-		int keysPerTask = this.nKeys / ntasks + 1;
+		//int keysPerTask = this.nKeys / ntasks + 1;
+		
+		int keysPerTask = this.nKeys / ntasks;
 
 		for (int i = 0 ; i < ntasks; i++) {
 			InsertTask it = new InsertTaskSync(client, args, counters, start, keysPerTask); 			
