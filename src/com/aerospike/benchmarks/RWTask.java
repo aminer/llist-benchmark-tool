@@ -87,10 +87,6 @@ public abstract class RWTask implements Runnable {
 				case READ_MODIFY_DECREMENT:
 					readModifyDecrement();		
 					break;
-					
-				case READ_FROM_FILE:
-					readFromFile();	
-					break;
 				}
 			} 
 			catch (Exception e) {
@@ -180,17 +176,6 @@ public abstract class RWTask implements Runnable {
 		doIncrement(key, -1);
 	}
 	
-	private void readFromFile() {
-		int key = random.nextInt(keyCount);
-		
-		if (args.keyType == KeyType.STRING) {
-		    doReadString(key, true);
-		}    
-		else if (args.keyType == KeyType.INTEGER) {
-			doReadLong(key, true);
-		}
-	}
-
 	/**
 	 * Read existing values from the database, save them away in our validation arrays.
 	 */
@@ -246,7 +231,7 @@ public abstract class RWTask implements Runnable {
 		Bin[] bins = args.getBins(random, multiBin);
 		
 		try {
-			for (int j = 0; j < args.itemCount; j++) {
+			for (int i = 0; i < args.itemCount; i++) {
 				largeListAdd(key, bins[0].value);
 			}
 			
@@ -291,13 +276,9 @@ public abstract class RWTask implements Runnable {
 		try {
 			Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
 			
-			/*if (multiBin) {
+			for (int i = 0; i < expectedValues.length; i++) {
 				largeListGet(key);
-			} 
-			else {
-				largeListGet(key);
-			}*/
-			largeListGet(key);
+			}
 		}
 		catch (AerospikeException ae) {
 			readFailure(ae);

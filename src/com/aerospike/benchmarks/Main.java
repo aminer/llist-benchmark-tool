@@ -184,7 +184,6 @@ public class Main implements Log.Callback {
 			"> 1 : Run maximum batchThreads in parallel.  When a node command finshes, start a new one until all finished."
 			);
 
-		options.addOption("F", "keyFile", true, "File path to read the keys for read operation.");
 		options.addOption("KT", "keyType", true, "Type of the key(String/Integer) in the file, default is String");
 
 		options.addOption("PS", "pageSize", true, "Page size in bytes.");
@@ -336,12 +335,8 @@ public class Main implements Log.Callback {
 			args.objectSpec[0] = dbobj;
 		}
 		
-		if (line.hasOption("keyFile")) {
-			args.workload = Workload.READ_FROM_FILE;
-		} 
-		else {
-			args.workload = Workload.READ_UPDATE;
-		}
+		args.workload = Workload.READ_UPDATE;
+		
 		args.readPct = 50;
 		args.readMultiBinPct = 100;
 		args.writeMultiBinPct = 100;			

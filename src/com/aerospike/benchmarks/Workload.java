@@ -44,9 +44,4 @@ public enum Workload {
 	 * Read/Modify/Decrement. Perform random key, read all bins, decrement one integer bin workload.
 	 */	
 	READ_MODIFY_DECREMENT,
-	
-	/**
-	 * Read the keys(String/Integer) from the File.Read all bins .
-	 */	
-	READ_FROM_FILE;
 }
