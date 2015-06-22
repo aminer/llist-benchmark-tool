@@ -89,6 +89,7 @@ public class RWTaskSync extends RWTask {
 		list.setPageSize(args.pageSize); // Set the page size.
 		list.add(Value.get(entry));
 		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
+		System.out.println("LLIST SIZE: ++++++++++++" + list.size());
 	}
 
 	protected void get(Key key, String binName) throws AerospikeException {

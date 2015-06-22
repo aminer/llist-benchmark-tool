@@ -98,10 +98,6 @@ public class Main implements Log.Callback {
 		// Leave in (and ignore) so existing benchmark scripts do not break.
 		options.addOption("l", "keylength", true, "Not used anymore since key is an integer.");
 		
-		options.addOption("b", "bins", true, 
-			"Set the number of Aerospike bins. " +
-			"Each bin will contain an object defined with -o. The default is single bin (-b 1)."
-			);
 		options.addOption("o", "objectSpec", true, 
 			"I | S:<size> | B:<size>\n" +
 			"Set the type of object(s) to use in Aerospike transactions. Type can be 'I' " +
@@ -279,13 +275,6 @@ public class Main implements Log.Callback {
 			this.startKey = Integer.parseInt(line.getOptionValue("startkey"));
 		}
 		
-		if (line.hasOption("bins")) {
-			args.nBins = Integer.parseInt(line.getOptionValue("bins"));
-		}
-		else {
-			args.nBins = 1;
-		}
-
 		if (line.hasOption("objectSpec")) {
 			String[] objectsArr = line.getOptionValue("objectSpec").split(",");
 			args.objectSpec = new DBObjectSpec[objectsArr.length];
@@ -479,7 +468,7 @@ public class Main implements Log.Callback {
 		System.out.println("keys: " + this.nKeys
 			+ ", start key: " + this.startKey
 			+ ", transactions: " + args.transactionLimit
-			+ ", bins: " + args.nBins
+			//+ ", bins: " + args.nBins
 			+ ", random values: " + (args.fixedBins == null)
 			+ ", throughput: " + (args.throughput == 0 ? "unlimited" : (args.throughput + " tps")));
 	
@@ -566,7 +555,8 @@ public class Main implements Log.Callback {
 		//int keysPerTask = this.nKeys / ntasks + 1;
 		
 		int keysPerTask = this.nKeys / ntasks;
-
+		System.out.println("keysPerTask " + keysPerTask);
+		
 		for (int i = 0 ; i < ntasks; i++) {
 			InsertTask it = new InsertTaskSync(client, args, counters, start, keysPerTask); 			
 			es.execute(it);

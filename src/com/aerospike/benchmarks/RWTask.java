@@ -63,6 +63,7 @@ public abstract class RWTask implements Runnable {
 		writePolicyGeneration.generation = 0;		
 	}	
 	
+	@SuppressWarnings("incomplete-switch")
 	public void run() {
 		// Load data if we're going to be validating.              
 		if (args.validate) {

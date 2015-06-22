@@ -50,7 +50,7 @@ public abstract class InsertTask implements Runnable {
 						largeListAdd(key, bins[0].value);
 					}
 					
-					System.out.println("Inserting: " + bins[0].value);
+					//System.out.println("Inserting: " + bins[0].value);
 					
 					/*if (i == keyCount - 1) {
 						printfConfig(key);

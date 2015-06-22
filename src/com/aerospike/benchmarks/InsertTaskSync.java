@@ -74,7 +74,7 @@ public final class InsertTaskSync extends InsertTask {
 	 	//LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		list.add(Value.get(entry));
 		list.setPageSize(args.pageSize); // Set the page size.
-		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
+		System.out.println("LLIST CONFIG: " + list.size() + "*********** " + list.getConfig());
 	}
 
 	protected void printfConfig(Key key) throws AerospikeException {
