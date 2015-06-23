@@ -241,7 +241,7 @@ public class Main implements Log.Callback {
 			args.itemCount = Integer.parseInt(line.getOptionValue("itemCount"));
 		}
 		else {
-			args.itemCount = 4; // Default LDT item count.
+			args.itemCount = 1; // Default LDT item count.
 		}
 			
 		if (line.hasOption("itemSize")) {

@@ -34,20 +34,6 @@ public final class InsertTaskSync extends InsertTask {
 		super(args, counters, keyStart, keyCount);
 		this.client = client;
 	}
-	
-	/*protected void put(Key key, Bin[] bins) throws AerospikeException {
-		if (counters.write.latency != null) {
-			long begin = System.currentTimeMillis();
-			client.put(args.writePolicy, key, bins);
-			long elapsed = System.currentTimeMillis() - begin;
-			counters.write.count.getAndIncrement();			
-			counters.write.latency.add(elapsed);
-		}
-		else {
-			client.put(args.writePolicy, key, bins);
-			counters.write.count.getAndIncrement();			
-		}
-	}*/
 
 	protected void largeListAdd(Key key, Value value) throws AerospikeException {
 		long begin = System.currentTimeMillis();
@@ -71,14 +57,9 @@ public final class InsertTaskSync extends InsertTask {
 
 		// Add entry
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
-	 	//LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		list.add(Value.get(entry));
 		list.setPageSize(args.pageSize); // Set the page size.
-		System.out.println("LLIST CONFIG: " + list.size() + "*********** " + list.getConfig());
-	}
-
-	protected void printfConfig(Key key) throws AerospikeException {
-		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
+		//System.out.println("LLIST CONFIG: " + list.size() + "*********** " + list.getConfig());
 		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 	}
 }
