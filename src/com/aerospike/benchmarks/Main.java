@@ -114,7 +114,7 @@ public class Main implements Log.Callback {
 			"Otherwise, the start_value indicates the smallest value in the working set of keys."
 			);
 		options.addOption("w", "workload", true, 
-			"I | RU,<percent>[,<percent2>][,<percent3>] | RMU | RMI | RMD\n" +
+			"I | RU,<percent>[,<percent2>][,<percent3>] | RMU\n" +
 			"Set the desired workload.\n\n" +  
 			"   -w I sets a linear 'insert' workload.\n\n" +
 			"   -w RU,80 sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
@@ -123,9 +123,7 @@ public class Main implements Log.Callback {
 			"   -w RU,80,60,30 sets a random multi-bin read-update workload with 80% reads and 20% writes.\n\n" + 
 			"      60% of reads will read all bins. 40% of reads will read a single bin.\n\n" + 
 			"      30% of writes will write all bins. 70% of writes will write a single bin.\n\n" + 
-			"    -w RMU sets a random read all bins-update one bin workload with 50% reads.\n\n" +      
-			"    -w RMI sets a random read all bins-increment one integer bin workload with 50% reads.\n\n" + 	    
-			"    -w RMD sets a random read all bins-decrement one integer bin workload with 50% reads."
+			"    -w RMU sets a random read all bins-update one bin workload with 50% reads."
 			);
 		options.addOption("g", "throughput", true, 
 			"Set a target transactions per second for the client. The client should not exceed this " + 
@@ -342,20 +340,6 @@ public class Main implements Log.Callback {
 			}
 			else if (workloadType.equals("RMU")) {
 				args.workload = Workload.READ_MODIFY_UPDATE;
-				
-				if (workloadOpts.length > 1) {
-					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 1.");
-				}
-			}
-			else if (workloadType.equals("RMI")) {
-				args.workload = Workload.READ_MODIFY_INCREMENT;
-				
-				if (workloadOpts.length > 1) {
-					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 1.");
-				}
-			}
-			else if (workloadType.equals("RMD")) {
-				args.workload = Workload.READ_MODIFY_DECREMENT;
 				
 				if (workloadOpts.length > 1) {
 					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 1.");

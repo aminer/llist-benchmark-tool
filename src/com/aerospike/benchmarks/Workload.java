@@ -34,14 +34,4 @@ public enum Workload {
 	 * Read/Modify/Update. Perform random key, read all bins, write one bin workload.
 	 */
 	READ_MODIFY_UPDATE,
-	
-	/**
-	 * Read/Modify/Increment. Perform random key, read all bins, increment one integer bin workload.
-	 */
-	READ_MODIFY_INCREMENT,
-	
-	/**
-	 * Read/Modify/Decrement. Perform random key, read all bins, decrement one integer bin workload.
-	 */	
-	READ_MODIFY_DECREMENT,
 }

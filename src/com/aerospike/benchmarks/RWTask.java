@@ -80,14 +80,6 @@ public abstract class RWTask implements Runnable {
 				case READ_MODIFY_UPDATE:
 					readModifyUpdate();		
 					break;
-					
-				case READ_MODIFY_INCREMENT:
-					readModifyIncrement();		
-					break;
-					
-				case READ_MODIFY_DECREMENT:
-					readModifyDecrement();		
-					break;
 				}
 			} 
 			catch (Exception e) {
@@ -157,24 +149,6 @@ public abstract class RWTask implements Runnable {
 		doRead(key, true);
 		// Write one bin.
 		doWrite(key, false);
-	}
-	
-	private void readModifyIncrement() {
-		int key = random.nextInt(keyCount);
-
-		// Read all bins.
-		doRead(key, true);
-		// Increment one bin.
-		doIncrement(key, 1);
-	}
-
-	private void readModifyDecrement() {
-		int key = random.nextInt(keyCount);
-
-		// Read all bins.
-		doRead(key, true);
-		// Decrement one bin.
-		doIncrement(key, -1);
 	}
 	
 	/**
