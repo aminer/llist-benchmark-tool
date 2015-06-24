@@ -116,29 +116,15 @@ public abstract class RWTask implements Runnable {
 		if (rand < args.readPct) {
 			boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
 			
-			if (args.batchSize <= 1) {
-				int key = random.nextInt(keyCount);
-				doRead(key, isMultiBin);
-			}
-			else {
-				doReadBatch(isMultiBin);
-			}
+			int key = random.nextInt(keyCount);
+			doRead(key, isMultiBin);
 		}
 		else {
 			boolean isMultiBin = random.nextInt(100) < args.writeMultiBinPct;
 			
-			if (args.batchSize <= 1) {
-				// Single record write.
-				int key = random.nextInt(keyCount);
-				doWrite(key, isMultiBin);
-			}
-			else {
-				// Batch write is not supported, so write batch size one record at a time.
-				for (int i = 0; i < args.batchSize; i++) {
-					int key = random.nextInt(keyCount);
-					doWrite(key, isMultiBin);
-				}
-			}
+			// Single record write.
+			int key = random.nextInt(keyCount);
+			doWrite(key, isMultiBin);
 		}		
 	}
 	
@@ -261,35 +247,6 @@ public abstract class RWTask implements Runnable {
 		catch (Exception e) {
 			readFailure(e);
 		}
-	}
-
-	/**
-	 * Read batch of keys in one call.
-	 */
-	protected void doReadBatch(boolean multiBin) {
-		Key[] keys = new Key[args.batchSize];
-		
-		for (int i = 0; i < keys.length; i++) {
-			int keyIdx = random.nextInt(keyCount);
-			keys[i] = new Key(args.namespace, args.setName, keyStart + keyIdx);
-		}
-		
-		try {
-			if (multiBin) {
-				// Read all bins, maybe validate
-				get(keys);			
-			} 
-			else {
-				// Read one bin, maybe validate
-				get(keys, "0");			
-			}
-		}
-		catch (AerospikeException ae) {
-			readFailure(ae);
-		}	
-		catch (Exception e) {
-			readFailure(e);
-		}	
 	}
 
 	/**

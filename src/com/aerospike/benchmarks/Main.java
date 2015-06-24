@@ -169,13 +169,6 @@ public class Main implements Log.Callback {
 		options.addOption("D", "debug", false, "Run benchmarks in debug mode.");
 		options.addOption("u", "usage", false, "Print usage.");
 
-		options.addOption("BT", "batchThreads", true,
-			"Maximum number of concurrent batch sub-threads for each batch command.\n" + 
-			"1   : Run each batch node command sequentially.\n" +
-			"0   : Run all batch node commands in parallel.\n" +
-			"> 1 : Run maximum batchThreads in parallel.  When a node command finshes, start a new one until all finished."
-			);
-
 		options.addOption("PS", "pageSize", true, "Page size in bytes. Default: 4K");
 		options.addOption("IC", "itemCount", true, "Number of items in the LDT. Default: 100");
 		options.addOption("IS", "itemSize", true, "Item size in bytes. Default: 8");
@@ -196,7 +189,6 @@ public class Main implements Log.Callback {
 		
 		args.readPolicy = clientPolicy.readPolicyDefault;
         args.writePolicy = clientPolicy.writePolicyDefault;
-        args.batchPolicy = clientPolicy.batchPolicyDefault;
 
         if (line.hasOption("hosts")) {
 			this.hosts = line.getOptionValue("hosts").split(",");
@@ -362,21 +354,18 @@ public class Main implements Log.Callback {
 			int timeout = Integer.parseInt(line.getOptionValue("timeout"));
 			args.readPolicy.timeout = timeout;
 			args.writePolicy.timeout = timeout;
-			args.batchPolicy.timeout = timeout;
 		}			 		 
 
 		if (line.hasOption("maxRetries")) {
 			int maxRetries = Integer.parseInt(line.getOptionValue("maxRetries"));
 			args.readPolicy.maxRetries = maxRetries;
 			args.writePolicy.maxRetries = maxRetries;
-			args.batchPolicy.maxRetries = maxRetries;
 		}
 		
 		if (line.hasOption("sleepBetweenRetries")) {
 			int sleepBetweenRetries = Integer.parseInt(line.getOptionValue("sleepBetweenRetries"));
 			args.readPolicy.sleepBetweenRetries = sleepBetweenRetries;
 			args.writePolicy.sleepBetweenRetries = sleepBetweenRetries;
-			args.batchPolicy.sleepBetweenRetries = sleepBetweenRetries;
 		}
 		
 		if (line.hasOption("commitLevel")) {
@@ -411,11 +400,7 @@ public class Main implements Log.Callback {
 
 		if (line.hasOption("debug")) {
 			args.debug = true;
-		}
-        
-		if (line.hasOption("batchThreads")) {
-			args.batchPolicy.maxConcurrentThreads = Integer.parseInt(line.getOptionValue("batchThreads"));
-		}			 
+		}		 
         
         if (line.hasOption("latency")) {
 			String[] latencyOpts = line.getOptionValue("latency").split(",");
@@ -468,11 +453,6 @@ public class Main implements Log.Callback {
 			+ ", maxRetries: " + args.writePolicy.maxRetries
 			+ ", sleepBetweenRetries: " + args.writePolicy.sleepBetweenRetries
 			+ ", commitLevel: " + args.writePolicy.commitLevel);
-		
-		if (args.batchSize > 1) {		
-			System.out.println("batch size: " + args.batchSize
-				+ ", batch threads: " + args.batchPolicy.maxConcurrentThreads);
-		}
 		
 		int binCount = 0;
 		

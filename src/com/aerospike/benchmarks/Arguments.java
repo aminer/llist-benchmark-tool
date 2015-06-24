@@ -29,8 +29,6 @@ public class Arguments {
 	public DBObjectSpec[] objectSpec;
 	public Policy readPolicy;
 	public WritePolicy writePolicy;
-	public BatchPolicy batchPolicy;
-	public int batchSize;
 	public int readPct;
 	public int readMultiBinPct;
 	public int writeMultiBinPct;
