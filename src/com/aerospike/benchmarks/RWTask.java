@@ -207,28 +207,6 @@ public abstract class RWTask implements Runnable {
 			writeFailure(e);
 		}
 	}
-
-	/**
-	 * Increment (or decrement, if incrValue is negative) the key at the given index.
-	 */
-	protected void doIncrement(int keyIdx, int incrValue) {
-		// set up bin for increment
-		Bin[] bins = new Bin[] {new Bin("", incrValue)};
-		
-		try {
-			add(new Key(args.namespace, args.setName, keyStart + keyIdx), bins);
-			
-			if (args.validate) {
-				this.expectedValues[keyIdx].add(bins, incrValue);
-			}
-		}
-		catch (AerospikeException ae) {
-			writeFailure(ae);
-		}
-		catch (Exception e) {
-			writeFailure(e);
-		}
-	}
 		
 	/**
 	 * Read the key at the given index.
@@ -249,55 +227,6 @@ public abstract class RWTask implements Runnable {
 		}
 	}
 
-	/**
-	 * Read the keys of type Integer from the file supplied.
-	 */
-	protected void doReadLong(int keyIdx, boolean multiBin) {
-		long numKey = Long.parseLong(Main.keyList.get(keyStart + keyIdx));
-		
-		try {
-			if (multiBin) {
-				// Read all bins, maybe validate
-				get(new Key(args.namespace, args.setName, numKey));			
-			} 
-			else {
-				// Read one bin, maybe validate
-				get(new Key(args.namespace, args.setName, numKey), "0");			
-			}
-		}
-		catch (AerospikeException ae) {
-			readFailure(ae);
-		}	
-		catch (Exception e) {
-			readFailure(e);
-		}
-	}
-	
-	/**
-	 * Read the keys of type String from the file supplied.
-	 */
-	protected void doReadString(int keyIdx,boolean multiBin) {
-		String strKey = Main.keyList.get(keyStart+keyIdx);
-
-		try {
-			if (multiBin) {
-				// Read all bins, maybe validate
-				get(new Key(args.namespace, args.setName, strKey));			
-			} 
-			else {
-				// Read one bin, maybe validate
-				get(new Key(args.namespace, args.setName, strKey), "0");			
-			}
-		}
-		catch (AerospikeException ae) {
-			readFailure(ae);
-		}	
-		catch (Exception e) {
-			readFailure(e);
-		}
-		
-	}
-	
 	protected void processRead(Key key, Record record) {
 		if (record == null && args.reportNotFound) {
 			counters.readNotFound.getAndIncrement();	
@@ -365,13 +294,6 @@ public abstract class RWTask implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
-	protected abstract void put(Key key, Bin[] bins) throws AerospikeException;
-	protected abstract void add(Key key, Bin[] bins) throws AerospikeException;
-	protected abstract void get(Key key, String binName) throws AerospikeException;
-	protected abstract void get(Key key) throws AerospikeException;
-	protected abstract void get(Key[] keys) throws AerospikeException;
-	protected abstract void get(Key[] keys, String binName) throws AerospikeException;
 
 	protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
 	protected abstract void largeListGet(Key key) throws AerospikeException;

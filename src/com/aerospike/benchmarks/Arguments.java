@@ -18,7 +18,6 @@ package com.aerospike.benchmarks;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
-import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.WritePolicy;
 
