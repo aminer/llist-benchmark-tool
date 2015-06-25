@@ -143,7 +143,7 @@ public class Main implements Log.Callback {
 			);
 		options.addOption("commitLevel", true, 
 				"Desired replica consistency guarantee when committing a transaction on the server. " +
-				"Values:  all | master.  Default: all"	
+				"Values:  all | master. Default: all"	
 				);
 
 		options.addOption("z", "threads", true, 

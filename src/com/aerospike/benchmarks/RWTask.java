@@ -193,7 +193,7 @@ public abstract class RWTask implements Runnable {
 		
 		try {
 			for (int i = 0; i < args.itemCount; i++) {
-				largeListAdd(key, bins[0].value);
+				largeListUpdate(key, bins[0].value);
 			}
 			
 			if (args.validate) {
@@ -295,6 +295,6 @@ public abstract class RWTask implements Runnable {
 		}
 	}
 
-	protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
+	protected abstract void largeListUpdate(Key key, Value value) throws AerospikeException;
 	protected abstract void largeListGet(Key key) throws AerospikeException;
 }

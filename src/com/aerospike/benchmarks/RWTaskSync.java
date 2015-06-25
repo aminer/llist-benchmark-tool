@@ -34,30 +34,30 @@ public class RWTaskSync extends RWTask {
 		super(client, args, counters, keyStart, keyCount);	
 	}
 
-	protected void largeListAdd(Key key, Value value) throws AerospikeException {
+	protected void largeListUpdate(Key key, Value value) throws AerospikeException {
 		long begin = System.currentTimeMillis();
 		if (counters.write.latency != null) {
-			largeListAdd(key, value, begin);
+			largeListUpdate(key, value, begin);
 			long elapsed = System.currentTimeMillis() - begin;
 			counters.write.count.getAndIncrement();			
 			counters.write.latency.add(elapsed);
 		}
 		else {
-			largeListAdd(key, value, begin);
+			largeListUpdate(key, value, begin);
 			counters.write.count.getAndIncrement();			
 		}
 	}
 
-	private void largeListAdd(Key key, Value value, long timestamp) throws AerospikeException {
+	private void largeListUpdate(Key key, Value value, long timestamp) throws AerospikeException {
 		// Create entry
 		Map<String,Value> entry = new HashMap<String,Value>();
 		entry.put("key", Value.get(timestamp));
 		entry.put("log", value);
 
-		// Add entry
+		// Update entry
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		list.setPageSize(args.pageSize); // Set the page size.
-		list.add(Value.get(entry));
+		list.update(Value.get(entry));
 		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 		System.out.println("LLIST SIZE: ++++++++++++" + list.size());
 	}
