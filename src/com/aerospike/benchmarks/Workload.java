@@ -14,6 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.aerospike.benchmarks;
 
 /**
@@ -29,9 +30,4 @@ public enum Workload {
 	 * Read/Update. Perform random key, random read all bins or write all bins workload.
 	 */
 	READ_UPDATE,
-	
-	/**
-	 * Read/Modify/Update. Perform random key, read all bins, write one bin workload.
-	 */
-	READ_MODIFY_UPDATE,
 }

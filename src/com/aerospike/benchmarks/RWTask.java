@@ -14,6 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.aerospike.benchmarks;
 
 import java.util.List;
@@ -76,10 +77,6 @@ public abstract class RWTask implements Runnable {
 				case READ_UPDATE:
 					readUpdate();
 					break;
-					
-				case READ_MODIFY_UPDATE:
-					readModifyUpdate();		
-					break;
 				}
 			} 
 			catch (Exception e) {
@@ -126,15 +123,6 @@ public abstract class RWTask implements Runnable {
 			int key = random.nextInt(keyCount);
 			doWrite(key, isMultiBin);
 		}		
-	}
-	
-	private void readModifyUpdate() {
-		int key = random.nextInt(keyCount);
-				
-		// Read all bins.
-		doRead(key, true);
-		// Write one bin.
-		doWrite(key, false);
 	}
 	
 	/**
@@ -227,25 +215,8 @@ public abstract class RWTask implements Runnable {
 		}
 	}
 
-	protected void processRead(Key key, Record record) {
-		if (record == null && args.reportNotFound) {
-			counters.readNotFound.getAndIncrement();	
-		}
-		else {
-			counters.read.count.getAndIncrement();		
-		}
-
-		if (args.validate) {
-			int keyIdx = key.userKey.toInteger() - keyStart;
-			
-			if (! this.expectedValues[keyIdx].validate(record)) {
-				this.counters.valueMismatchCnt.incrementAndGet();
-			}
-		}	
-	}
-
 	protected void processLargeRead(Key key, List<?> list) {
-		if ((list == null || list.size() == 0) && args.reportNotFound) {
+		if (list == null || list.size() == 0) {
 			counters.readNotFound.getAndIncrement();	
 		}
 		else {

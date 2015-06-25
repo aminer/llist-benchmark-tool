@@ -14,6 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.aerospike.benchmarks;
 
 import com.aerospike.client.Bin;
@@ -33,7 +34,6 @@ public class Arguments {
 	public int writeMultiBinPct;
 	public int throughput;
 	public long transactionLimit;
-	public boolean reportNotFound;
 	public boolean validate;
 	public boolean debug;
 	public Bin[] fixedBins;

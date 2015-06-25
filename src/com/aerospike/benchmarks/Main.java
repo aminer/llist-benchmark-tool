@@ -14,6 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.aerospike.benchmarks;
 
 import java.io.PrintWriter;
@@ -33,7 +34,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.policy.CommitLevel;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.Log;
 import com.aerospike.client.Log.Level;
@@ -94,16 +94,17 @@ public class Main implements Log.Callback {
 			"start_value + num_keys."
 			);
 		
-		// key type has been changed to integer, so this option is no longer relevant.
+		// Key type has been changed to integer, so this option is no longer relevant.
 		// Leave in (and ignore) so existing benchmark scripts do not break.
 		options.addOption("l", "keylength", true, "Not used anymore since key is an integer.");
 		
 		options.addOption("o", "objectSpec", true, 
-			"I | S:<size> | B:<size>\n" +
+			"I | S:<size> | M:<size>\n" +
 			"Set the type of object(s) to use in Aerospike transactions. Type can be 'I' " +
-			"for integer, 'S' for string, or 'B' for Java blob. If type is 'I' (integer), " + 
+			"for integer, 'S' for string, or 'M' for map. If type is 'I' (integer), " + 
 			"do not set a size (integers are always 8 bytes). If object_type is 'S' " + 
-			"(string), this value represents the length of the string."
+			"(string), this value represents the length of the string. If object_type is 'M' " + 
+			"(map), this value represents the size of the map."
 			);
 		options.addOption("R", "random", false, 
 			"Use dynamically generated random bin values instead of default static fixed bin values."
@@ -114,7 +115,7 @@ public class Main implements Log.Callback {
 			"Otherwise, the start_value indicates the smallest value in the working set of keys."
 			);
 		options.addOption("w", "workload", true, 
-			"I | RU,<percent>[,<percent2>][,<percent3>] | RMU\n" +
+			"I | RU,<percent>[,<percent2>][,<percent3>]\n" +
 			"Set the desired workload.\n\n" +  
 			"   -w I sets a linear 'insert' workload.\n\n" +
 			"   -w RU,80 sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
@@ -122,8 +123,7 @@ public class Main implements Log.Callback {
 			"      100% of writes will write all bins.\n\n" + 
 			"   -w RU,80,60,30 sets a random multi-bin read-update workload with 80% reads and 20% writes.\n\n" + 
 			"      60% of reads will read all bins. 40% of reads will read a single bin.\n\n" + 
-			"      30% of writes will write all bins. 70% of writes will write a single bin.\n\n" + 
-			"    -w RMU sets a random read all bins-update one bin workload with 50% reads."
+			"      30% of writes will write all bins. 70% of writes will write a single bin."
 			);
 		options.addOption("g", "throughput", true, 
 			"Set a target transactions per second for the client. The client should not exceed this " + 
@@ -136,16 +136,6 @@ public class Main implements Log.Callback {
 		
 		options.addOption("T", "timeout", true, "Set read and write transaction timeout in milliseconds.");
 	
-		options.addOption("maxRetries", true, "Maximum number of retries before aborting the current transaction.");
-		options.addOption("sleepBetweenRetries", true, 
-			"Milliseconds to sleep between retries if a transaction fails and the timeout was not exceeded. " +
-			"Enter zero to skip sleep."	
-			);
-		options.addOption("commitLevel", true, 
-				"Desired replica consistency guarantee when committing a transaction on the server. " +
-				"Values:  all | master. Default: all"	
-				);
-
 		options.addOption("z", "threads", true, 
 			"Set the number of threads the client will use to generate load. " + 
 			"It is not recommended to use a value greater than 125."
@@ -164,7 +154,6 @@ public class Main implements Log.Callback {
 			"Latency columns are cumulative. If a transaction takes 9ms, it will be included in both the >1ms and >8ms columns."
 			);
 		
-		options.addOption("N", "reportNotFound", false, "Report not found errors. Data should be fully initialized before using this option.");
 		//options.addOption("v", "validate", false, "Validate data.");
 		options.addOption("D", "debug", false, "Run benchmarks in debug mode.");
 		options.addOption("u", "usage", false, "Print usage.");
@@ -173,7 +162,7 @@ public class Main implements Log.Callback {
 		options.addOption("IC", "itemCount", true, "Number of items in the LDT. Default: 100");
 		options.addOption("IS", "itemSize", true, "Item size in bytes. Default: 8");
 		
-		// parse the command line arguments
+		// Parse the command line arguments
 		CommandLineParser parser = new PosixParser();
 		CommandLine line = parser.parse(options, commandLineArgs);		
 		String[] extra = line.getArgs();
@@ -330,13 +319,6 @@ public class Main implements Log.Callback {
 					args.writeMultiBinPct = Integer.parseInt(workloadOpts[3]);
 				}
 			}
-			else if (workloadType.equals("RMU")) {
-				args.workload = Workload.READ_MODIFY_UPDATE;
-				
-				if (workloadOpts.length > 1) {
-					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 1.");
-				}
-			}
 			else {
 				throw new Exception("Unknown workload: " + workloadType);
 			}
@@ -355,29 +337,6 @@ public class Main implements Log.Callback {
 			args.readPolicy.timeout = timeout;
 			args.writePolicy.timeout = timeout;
 		}			 		 
-
-		if (line.hasOption("maxRetries")) {
-			int maxRetries = Integer.parseInt(line.getOptionValue("maxRetries"));
-			args.readPolicy.maxRetries = maxRetries;
-			args.writePolicy.maxRetries = maxRetries;
-		}
-		
-		if (line.hasOption("sleepBetweenRetries")) {
-			int sleepBetweenRetries = Integer.parseInt(line.getOptionValue("sleepBetweenRetries"));
-			args.readPolicy.sleepBetweenRetries = sleepBetweenRetries;
-			args.writePolicy.sleepBetweenRetries = sleepBetweenRetries;
-		}
-		
-		if (line.hasOption("commitLevel")) {
-			String level = line.getOptionValue("commitLevel");
-			
-			if (level.equals("master")) {
-				args.writePolicy.commitLevel = CommitLevel.COMMIT_MASTER;
-			}
-			else if (! level.equals("all")) {
-				throw new Exception("Invalid commitLevel: " + level);
-			}
-		}
 		
 		if (line.hasOption("threads")) {
 			this.nThreads = Integer.parseInt(line.getOptionValue("threads"));
@@ -388,10 +347,6 @@ public class Main implements Log.Callback {
 		}
 		else {
 			this.nThreads = 16;
-		}
-
-		if (line.hasOption("reportNotFound")) {
-			args.reportNotFound = true;
 		}
 
 		if (line.hasOption("validate")) {
@@ -445,8 +400,7 @@ public class Main implements Log.Callback {
 			System.out.println("read policy: timeout: " + args.readPolicy.timeout
 				+ ", maxRetries: " + args.readPolicy.maxRetries 
 				+ ", sleepBetweenRetries: " + args.readPolicy.sleepBetweenRetries
-				+ ", replica: " + args.readPolicy.replica
-				+ ", reportNotFound: " + args.reportNotFound);
+				+ ", replica: " + args.readPolicy.replica);
 		}
 
 		System.out.println("write policy: timeout: " + args.writePolicy.timeout
@@ -600,12 +554,6 @@ public class Main implements Log.Callback {
 			int timeoutReads = this.counters.read.timeouts.getAndSet(0);
 			int errorReads = this.counters.read.errors.getAndSet(0);
 			
-			int notFound = 0;
-			
-			if (args.reportNotFound) {
-				notFound = this.counters.readNotFound.getAndSet(0);
-			}
-			
 			this.counters.periodBegin.set(time);
 
 			//int used = (client != null)? client.getAsyncConnUsed() : 0;
@@ -616,9 +564,6 @@ public class Main implements Log.Callback {
 			System.out.print(" write(tps=" + numWrites + " timeouts=" + timeoutWrites + " errors=" + errorWrites + ")");
 			System.out.print(" read(tps=" + numReads + " timeouts=" + timeoutReads + " errors=" + errorReads);
 			
-			if (args.reportNotFound) {
-				System.out.print(" nf=" + notFound);
-			}
 			System.out.print(")");
 			
 			System.out.print(" total(tps=" + (numWrites + numReads) + " timeouts=" + (timeoutWrites + timeoutReads) + " errors=" + (errorWrites + errorReads) + ")");
