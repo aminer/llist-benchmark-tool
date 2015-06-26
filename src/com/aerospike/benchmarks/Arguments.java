@@ -17,6 +17,9 @@
 
 package com.aerospike.benchmarks;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.Policy;
@@ -84,6 +87,17 @@ public class Arguments {
                 sb.append((char)(random.nextInt(94) + 33));
             }
 			return Value.get(sb.toString());
+			
+		case 'M':
+			// For now, the map supports Integers
+			Map<String, Value> entry = new HashMap<String, Value>();
+			Value rand;
+			for (int i = 0; i < spec.size; i++) {
+        	    rand = Value.get(random.nextInt());
+            	entry.put("key", rand);
+            	entry.put("value", rand);
+            }
+			return Value.get(entry);
 			
 		case 'D':
 			return Value.get(System.currentTimeMillis());

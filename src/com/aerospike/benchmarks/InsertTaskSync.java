@@ -53,14 +53,22 @@ public final class InsertTaskSync extends InsertTask {
 	private void largeListAdd(Key key, Value value, long timestamp) throws AerospikeException {
 		// Create entry
 		Map<String,Value> entry = new HashMap<String,Value>();
-		entry.put("key", Value.get(timestamp));
-		entry.put("log", value);
-
+		//entry.put("key", Value.get(timestamp));
+		entry.put("key", value);
+		entry.put("value", value);
+		//entry.put("log", value);
 		// Add entry
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
-		list.add(Value.get(entry));
+		System.out.println("????????Getting: " + Value.get(value));
+		
+		try {
+			list.add(Value.get(entry));
+		} catch (AerospikeException e) {
+			System.out.println(e.getMessage());
+		}
+		
 		list.setPageSize(args.pageSize); // Set the page size.
 		//System.out.println("LLIST CONFIG: " + list.size() + "*********** " + list.getConfig());
-		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
+		//System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 	}
 }

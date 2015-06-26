@@ -41,37 +41,41 @@ public abstract class InsertTask implements Runnable {
 	public void run() {
 		try {			
 			RandomShift random = new RandomShift();
-
 			for (int i = 0; i < keyCount; i++) {
-				try {
-					Key key = new Key(args.namespace, args.setName, keyStart + i);
-					Bin[] bins = args.getBins(random, true);
-					
-					for (int j = 0; j < args.itemCount; j++) {
-						largeListAdd(key, bins[0].value);
-					}
-					//System.out.println("Inserting: " + bins[0].value);
-				}
-				catch (AerospikeException ae) {
-					writeFailure(ae);
-				}	
-				catch (Exception e) {
-					writeFailure(e);
-				}
+				for (int j = 0; j < args.itemCount; j++) {
+					try {
+						Bin[] bins = args.getBins(random, true);
+						
+						//System.out.println("Inserting: " + bins[0].value);
+						
+						System.out.println("*********Inserting: " + bins[0].value);
 				
-				// Throttle throughput
-				if (args.throughput > 0) {
-					int transactions = counters.write.count.get();
+						//Key key = new Key(args.namespace, args.setName, keyStart + i);
+						Key key = new Key(args.namespace, args.setName, keyStart + i);
+						
+						largeListAdd(key, bins[j].value);
+					}
+					catch (AerospikeException ae) {
+						writeFailure(ae);
+					}	
+					catch (Exception e) {
+						writeFailure(e);
+					}
 					
-					if (transactions > args.throughput) {
-						long millis = counters.periodBegin.get() + 1000L - System.currentTimeMillis();                                        
+					// Throttle throughput
+					if (args.throughput > 0) {
+						int transactions = counters.write.count.get();
+						
+						if (transactions > args.throughput) {
+							long millis = counters.periodBegin.get() + 1000L - System.currentTimeMillis();                                        
 
-						if (millis > 0) {
-							Util.sleep(millis);
+							if (millis > 0) {
+								Util.sleep(millis);
+							}
 						}
 					}
 				}
-			}
+				}
 		}
 		catch (Exception ex) {
 			System.out.println("Insert task error: " + ex.getMessage());

@@ -63,8 +63,7 @@ public abstract class RWTask implements Runnable {
 		writePolicyGeneration.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
 		writePolicyGeneration.generation = 0;		
 	}	
-	
-	@SuppressWarnings("incomplete-switch")
+
 	public void run() {
 		// Load data if we're going to be validating.              
 		if (args.validate) {
@@ -73,11 +72,7 @@ public abstract class RWTask implements Runnable {
 
 		while (valid) {
 			try {
-				switch (args.workload) {
-				case READ_UPDATE:
-					readUpdate();
-					break;
-				}
+				readUpdate();
 			} 
 			catch (Exception e) {
 				if (args.debug) {

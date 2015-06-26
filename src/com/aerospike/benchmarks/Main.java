@@ -34,7 +34,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.Log;
 import com.aerospike.client.Log.Level;
 import com.aerospike.client.async.AsyncClient;
@@ -255,9 +254,10 @@ public class Main implements Log.Callback {
 		}
 		
 		if (line.hasOption("objectSpec")) {
+			System.out.println("ssssssssssss " + line.getOptionValue("objectSpec"));
 			String[] objectsArr = line.getOptionValue("objectSpec").split(",");
 			args.objectSpec = new DBObjectSpec[objectsArr.length];
-			for (int i=0; i<objectsArr.length; i++) {
+			for (int i=0; i < objectsArr.length; i++) {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
 				dbobj.type = objarr[0].charAt(0);
@@ -273,8 +273,6 @@ public class Main implements Log.Callback {
 			dbobj.type = 'I';	// If the object is not specified, it has one bin of integer type
 			args.objectSpec[0] = dbobj;
 		}
-		
-		args.workload = Workload.READ_UPDATE;
 		
 		args.readPct = 50;
 		args.readMultiBinPct = 100;
@@ -292,12 +290,8 @@ public class Main implements Log.Callback {
 					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 1.");
 				}
 			}
-			else if (workloadType.equals("RU") || workloadType.equals("RR")) {
-
+			else if (workloadType.equals("RU")) {
 				args.workload = Workload.READ_UPDATE;
-				if (workloadType.equals("RR")) {
-					args.writePolicy.recordExistsAction = RecordExistsAction.REPLACE;
-				}
 
 				if (workloadOpts.length < 2 || workloadOpts.length > 4) {
 					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 2 to 4.");
@@ -307,7 +301,7 @@ public class Main implements Log.Callback {
 					args.readPct = Integer.parseInt(workloadOpts[1]);
 					
 					if (args.readPct < 0 || args.readPct > 100) {
-						throw new Exception("Read-update workload read percentage must be between 0 and 100");
+						throw new Exception("Read-update workload read percentage must be between 0 and 100.");
 					}
 				}
 				
@@ -403,10 +397,10 @@ public class Main implements Log.Callback {
 				+ ", replica: " + args.readPolicy.replica);
 		}
 
-		System.out.println("write policy: timeout: " + args.writePolicy.timeout
-			+ ", maxRetries: " + args.writePolicy.maxRetries
-			+ ", sleepBetweenRetries: " + args.writePolicy.sleepBetweenRetries
-			+ ", commitLevel: " + args.writePolicy.commitLevel);
+		System.out.println("write policy: timeout: " + args.writePolicy.timeout);
+			//+ ", maxRetries: " + args.writePolicy.maxRetries
+			//+ ", sleepBetweenRetries: " + args.writePolicy.sleepBetweenRetries
+			//+ ", commitLevel: " + args.writePolicy.commitLevel);
 		
 		int binCount = 0;
 		
@@ -420,10 +414,6 @@ public class Main implements Log.Callback {
 			
 			case 'S':
 				System.out.println("string[" + spec.size + "]");
-				break;
-				
-			case 'B':
-				System.out.println("byte[" + spec.size + "]");
 				break;
 			}
 			binCount++;
@@ -473,9 +463,8 @@ public class Main implements Log.Callback {
 		//int keysPerTask = this.nKeys / ntasks + 1;
 		
 		int keysPerTask = this.nKeys / ntasks;
-		System.out.println("keysPerTask " + keysPerTask);
-		
-		for (int i = 0 ; i < ntasks; i++) {
+		System.out.println("keysPerTask: " + keysPerTask);
+		for (int i = 0; i < ntasks; i++) {
 			InsertTask it = new InsertTaskSync(client, args, counters, start, keysPerTask); 			
 			es.execute(it);
 			start += keysPerTask;
