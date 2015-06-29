@@ -17,6 +17,9 @@
 
 package com.aerospike.benchmarks;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
@@ -41,19 +44,30 @@ public abstract class InsertTask implements Runnable {
 	public void run() {
 		try {			
 			RandomShift random = new RandomShift();
+			Bin[] bins;
 			for (int i = 0; i < keyCount; i++) {
 				for (int j = 0; j < args.itemCount; j++) {
 					try {
-						Bin[] bins = args.getBins(random, true);
+						bins = args.getBins(random, true);
 						
-						//System.out.println("Inserting: " + bins[0].value);
 						
-						//System.out.println("*********Inserting: " + bins[j].value.toString());
-						//System.out.println("*********bins.size: " + bins.length);
+						//System.out.println("type: " + DBObjectSpec.type);
+						//System.out.println("size " + objarr[1].substring(0, objarr[1].length() - 1));
+						//System.out.println("type " + objarr[1].charAt(objarr[1].length() - 1));
 				
 						Key key = new Key(args.namespace, args.setName, keyStart + i);
 						
-						largeListAdd(key, bins[j].value);
+						if (DBObjectSpec.type == 'M') {
+							// Add entry
+							Map<String, Value> entry = new HashMap<String, Value>();
+							entry.put("key", bins[j].value);
+				        	entry.put("value", bins[j].value);
+				        	System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
+				        	largeListAdd(key, Value.get(entry)); 
+						}
+						else {
+							largeListAdd(key, bins[j].value); 
+						}
 					}
 					catch (AerospikeException ae) {
 						writeFailure(ae);

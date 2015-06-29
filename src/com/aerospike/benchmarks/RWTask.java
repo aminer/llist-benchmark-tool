@@ -17,6 +17,7 @@
 
 package com.aerospike.benchmarks;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -171,14 +172,40 @@ public abstract class RWTask implements Runnable {
 	 * Write the key at the given index
 	 */
 	protected void doWrite(int keyIdx, boolean multiBin) {
-		Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
+		Key key;
 		Bin[] bins = args.getBins(random, multiBin);
 		
 		try {
-			for (int i = 0; i < args.itemCount; i++) {
-				largeListUpdate(key, bins[0].value);
-			}
+			// Update 1 item picked randomly.
+			// Create entry
+			Map<String, Value> entry = new HashMap<String, Value>();
 			
+			if (args.updateOne) {
+				key = new Key(args.namespace, args.setName, keyIdx);
+				if (DBObjectSpec.type == 'M') {
+					entry.put("key", bins[0].value);
+		        	entry.put("value", bins[0].value);
+					largeListUpdate(key, Value.get(entry)); 
+				}
+				else {
+					largeListUpdate(key, bins[0].value); 
+				}
+			}
+			else {
+				// Pick '%' items and update each one.
+				for (int i = 0; i < (int) Math.ceil((args.itemCount * args.updatePct) / 100); i++) {
+					key = new Key(args.namespace, args.setName, random.nextInt(keyCount));
+					if (DBObjectSpec.type == 'M') {
+						entry.put("key", bins[0].value);
+			        	entry.put("value", bins[0].value);
+						largeListUpdate(key, Value.get(entry)); 
+					}
+					else {
+						largeListUpdate(key, bins[0].value); 
+					}
+					bins = args.getBins(random, multiBin);
+				}
+			}
 			if (args.validate) {
 				this.expectedValues[keyIdx].write(bins);
 			}

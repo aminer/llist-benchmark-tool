@@ -51,17 +51,11 @@ public class RWTaskSync extends RWTask {
 	}
 
 	private void largeListUpdate(Key key, Value value, long timestamp) throws AerospikeException {
-		// Create entry
-		Map<String,Value> entry = new HashMap<String,Value>();
-		entry.put("key", Value.get(timestamp));
-		entry.put("log", value);
-
 		// Update entry
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
-		list.setPageSize(args.pageSize); // Set the page size.
-		list.update(Value.get(entry));
-		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
-		System.out.println("LLIST SIZE: ++++++++++++" + list.size());
+		list.update(value);
+		//System.out.println("LLIST CONFIG: *********** " + list.getConfig());
+		//System.out.println("LLIST SIZE: ++++++++++++" + list.size());
 	}
 	
 	protected void largeListGet(Key key) throws AerospikeException {

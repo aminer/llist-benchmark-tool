@@ -114,10 +114,11 @@ public class Main implements Log.Callback {
 			"Otherwise, the start_value indicates the smallest value in the working set of keys."
 			);
 		options.addOption("w", "workload", true, 
-			"I | RU,<percent>[,<percent2>][,<percent3>]\n" +
+			"I | RU,{1,%},<percent>[,<percent2>][,<percent3>]\n" +
 			"Set the desired workload.\n\n" +  
 			"   -w I sets a linear 'insert' workload.\n\n" +
-			"   -w RU,80 sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
+			"   -w RU,1,80 picks 1 item randomly and sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
+			"   -w RU,50,80 for 50% of items, sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
 			"      100% of reads will read all bins.\n\n" + 
 			"      100% of writes will write all bins.\n\n" + 
 			"   -w RU,80,60,30 sets a random multi-bin read-update workload with 80% reads and 20% writes.\n\n" + 
@@ -254,24 +255,22 @@ public class Main implements Log.Callback {
 		}
 		
 		if (line.hasOption("objectSpec")) {
-			System.out.println("ssssssssssss " + line.getOptionValue("objectSpec"));
 			String[] objectsArr = line.getOptionValue("objectSpec").split(",");
 			args.objectSpec = new DBObjectSpec[objectsArr.length];
 			for (int i=0; i < objectsArr.length; i++) {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
-				if ((dbobj.type = objarr[0].charAt(0)) == 'M') {
-					DBObjectSpec.mapDataType = objarr[2].charAt(0);
-					DBObjectSpec.mapDataSize = Integer.parseInt(objarr[3]);
+				if ((DBObjectSpec.type = objarr[0].charAt(0)) == 'M') {
+					DBObjectSpec.mapDataType = objarr[1].charAt(0);
+					DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
 				}
 				
-				/*System.out.println("type: " + dbobj.type);
-				System.out.println("length: " + objarr[2].length());
-				System.out.println("size " + spec.mapDataSize);
-				System.out.println("type " + spec.mapDataType);*/
+				System.out.println("type: " + DBObjectSpec.type);
+				System.out.println("size " + DBObjectSpec.mapDataSize);
+				System.out.println("type " + DBObjectSpec.mapDataType);
 				
-				if (objarr.length > 1) { // There is a size value.
-					dbobj.size = Integer.parseInt(objarr[1]);
+				if (objarr.length > 1 && DBObjectSpec.type != 'M') { // There is a size value.
+					DBObjectSpec.size = Integer.parseInt(objarr[1]);
 				}
 				args.objectSpec[i] = dbobj;
 			}
@@ -279,7 +278,7 @@ public class Main implements Log.Callback {
 		else {
 			args.objectSpec = new DBObjectSpec[1];
 			DBObjectSpec dbobj = new DBObjectSpec(); 
-			dbobj.type = 'I';	// If the object is not specified, it has one bin of integer type.
+			DBObjectSpec.type = 'I';	// If the object is not specified, it has one bin of integer type.
 			args.objectSpec[0] = dbobj;
 		}
 		
@@ -302,24 +301,30 @@ public class Main implements Log.Callback {
 			else if (workloadType.equals("RU")) {
 				args.workload = Workload.READ_UPDATE;
 
-				if (workloadOpts.length < 2 || workloadOpts.length > 4) {
-					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 2 to 4.");
+				if (workloadOpts.length < 3 || workloadOpts.length > 5) {
+					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 3 to 5.");
 				}
 				
-				if (workloadOpts.length >= 2) {
-					args.readPct = Integer.parseInt(workloadOpts[1]);
+				if (workloadOpts.length >= 3) {
+					args.readPct = Integer.parseInt(workloadOpts[2]);
+					if (workloadOpts[1].charAt(0) == 'o') {
+						args.updateOne = true;
+					}
+					else {
+						args.updatePct = Integer.parseInt(workloadOpts[1]);
+					}
 					
 					if (args.readPct < 0 || args.readPct > 100) {
 						throw new Exception("Read-update workload read percentage must be between 0 and 100.");
 					}
 				}
 				
-				if (workloadOpts.length >= 3) {
-					args.readMultiBinPct = Integer.parseInt(workloadOpts[2]);
+				if (workloadOpts.length >= 4) {
+					args.readMultiBinPct = Integer.parseInt(workloadOpts[3]);
 				}
 				
-				if (workloadOpts.length >= 4) {
-					args.writeMultiBinPct = Integer.parseInt(workloadOpts[3]);
+				if (workloadOpts.length >= 5) {
+					args.writeMultiBinPct = Integer.parseInt(workloadOpts[4]);
 				}
 			}
 			else {
@@ -414,20 +419,20 @@ public class Main implements Log.Callback {
 		for (DBObjectSpec spec : args.objectSpec) {
 			System.out.print("ldt-bin[" + args.itemCount + "]: ");
 			
-			switch (spec.type) {
+			switch (DBObjectSpec.type) {
 			case 'I':
 				System.out.println("integer");
 				break;
 			
 			case 'S':
-				System.out.println("string[" + spec.size + "]");
+				System.out.println("string[" + DBObjectSpec.size + "]");
 				break;
 			case 'M':
 				switch (DBObjectSpec.mapDataType) {
 				case 'I':
-					System.out.println("map[" + spec.size + "] of " + "integer");
+					System.out.println("map of " + "integer");
 				case 'S':
-					System.out.println("map[" + spec.size + "] of " + "string[" + DBObjectSpec.mapDataSize + "]");
+					System.out.println("map of " + "string[" + DBObjectSpec.mapDataSize + "]");
 				default:
 					//throw new Exception("Unknown DataType: " + spec.type);
 					break;
@@ -435,7 +440,7 @@ public class Main implements Log.Callback {
 			}
 			//binCount++;
 		}
-
+		
 		System.out.println("debug: " + args.debug);
 		
 		Log.Level level = (args.debug)? Log.Level.DEBUG : Log.Level.INFO;

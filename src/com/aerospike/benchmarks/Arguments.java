@@ -17,9 +17,6 @@
 
 package com.aerospike.benchmarks;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.Policy;
@@ -44,6 +41,8 @@ public class Arguments {
 	public int pageSize;
 	public int itemCount;
 	public int itemSize;
+	public int updatePct;
+	public boolean updateOne;
 
 	public void setFixedBins() {
 		// Fixed values are used when the extra random call overhead is not wanted
@@ -73,33 +72,33 @@ public class Arguments {
     
 	private static Value genValue(RandomShift random, DBObjectSpec spec) {
 		StringBuilder sb;
-		switch (spec.type) {
+		switch (DBObjectSpec.type) {
 		case 'I':
 			return Value.get(random.nextInt());
 			
 		case 'B':
-			byte[] ba = new byte[spec.size];
+			byte[] ba = new byte[DBObjectSpec.size];
 			random.nextBytes(ba);
 			return Value.get(ba);
 				
 		case 'S':
-			sb = new StringBuilder(spec.size);
-            for (int i = 0; i < spec.size; i++) {
+			sb = new StringBuilder(DBObjectSpec.size);
+            for (int i = 0; i < DBObjectSpec.size; i++) {
             	// Append ascii value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
 			return Value.get(sb.toString());
 		case 'M':
-			// For now, the map supports Integers.
-			Map<String, Value> entry = new HashMap<String, Value>();
+			//Map<String, Value> entry = new HashMap<String, Value>();
 			if (DBObjectSpec.mapDataType == 'I') {
-				Value rand;
+				/*Value rand;
 				for (int i = 0; i < spec.size; i++) {
 	        	    rand = Value.get(random.nextInt());
 	            	entry.put("key", rand);
 	            	entry.put("value", rand);
 	            }
-				return Value.get(entry);
+				return Value.get(entry);*/
+				return Value.get(random.nextInt());
 			}
 			else if (DBObjectSpec.mapDataType == 'S') {
 				sb = new StringBuilder(DBObjectSpec.mapDataSize);
@@ -109,7 +108,6 @@ public class Arguments {
 				}
 				return Value.get(sb.toString());
 			}
-			//return Value.get(entry);
 		case 'D':
 			return Value.get(System.currentTimeMillis());
 			
