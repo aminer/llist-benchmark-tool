@@ -48,9 +48,9 @@ public abstract class InsertTask implements Runnable {
 						
 						//System.out.println("Inserting: " + bins[0].value);
 						
-						System.out.println("*********Inserting: " + bins[0].value);
+						//System.out.println("*********Inserting: " + bins[j].value.toString());
+						//System.out.println("*********bins.size: " + bins.length);
 				
-						//Key key = new Key(args.namespace, args.setName, keyStart + i);
 						Key key = new Key(args.namespace, args.setName, keyStart + i);
 						
 						largeListAdd(key, bins[j].value);
@@ -75,7 +75,7 @@ public abstract class InsertTask implements Runnable {
 						}
 					}
 				}
-				}
+			}
 		}
 		catch (Exception ex) {
 			System.out.println("Insert task error: " + ex.getMessage());

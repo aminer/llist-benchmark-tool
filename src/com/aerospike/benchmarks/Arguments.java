@@ -54,6 +54,7 @@ public class Arguments {
 	}
 
 	public Bin[] getBins(RandomShift random, boolean multiBin) {
+		
 		if (fixedBins != null) {
 		    return (multiBin) ? fixedBins : fixedBin;
 		}
@@ -71,6 +72,7 @@ public class Arguments {
 	}
     
 	private static Value genValue(RandomShift random, DBObjectSpec spec) {
+		StringBuilder sb;
 		switch (spec.type) {
 		case 'I':
 			return Value.get(random.nextInt());
@@ -81,24 +83,33 @@ public class Arguments {
 			return Value.get(ba);
 				
 		case 'S':
-			StringBuilder sb = new StringBuilder(spec.size);
+			sb = new StringBuilder(spec.size);
             for (int i = 0; i < spec.size; i++) {
             	// Append ascii value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
 			return Value.get(sb.toString());
-			
 		case 'M':
-			// For now, the map supports Integers
+			// For now, the map supports Integers.
 			Map<String, Value> entry = new HashMap<String, Value>();
-			Value rand;
-			for (int i = 0; i < spec.size; i++) {
-        	    rand = Value.get(random.nextInt());
-            	entry.put("key", rand);
-            	entry.put("value", rand);
-            }
-			return Value.get(entry);
-			
+			if (DBObjectSpec.mapDataType == 'I') {
+				Value rand;
+				for (int i = 0; i < spec.size; i++) {
+	        	    rand = Value.get(random.nextInt());
+	            	entry.put("key", rand);
+	            	entry.put("value", rand);
+	            }
+				return Value.get(entry);
+			}
+			else if (DBObjectSpec.mapDataType == 'S') {
+				sb = new StringBuilder(DBObjectSpec.mapDataSize);
+				for (int j = 0; j < DBObjectSpec.mapDataSize; j++) {
+					// Append ascii value between ordinal 33 and 127.
+		            sb.append((char)(random.nextInt(94) + 33));
+				}
+				return Value.get(sb.toString());
+			}
+			//return Value.get(entry);
 		case 'D':
 			return Value.get(System.currentTimeMillis());
 			

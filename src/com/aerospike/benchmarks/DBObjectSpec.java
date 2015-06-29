@@ -20,4 +20,6 @@ package com.aerospike.benchmarks;
 class DBObjectSpec {
 	char type;
 	int size;
+	static char mapDataType;
+	static int mapDataSize;
 }

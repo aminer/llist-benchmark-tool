@@ -260,8 +260,17 @@ public class Main implements Log.Callback {
 			for (int i=0; i < objectsArr.length; i++) {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
-				dbobj.type = objarr[0].charAt(0);
-				if (objarr.length > 1) {
+				if ((dbobj.type = objarr[0].charAt(0)) == 'M') {
+					DBObjectSpec.mapDataType = objarr[2].charAt(0);
+					DBObjectSpec.mapDataSize = Integer.parseInt(objarr[3]);
+				}
+				
+				/*System.out.println("type: " + dbobj.type);
+				System.out.println("length: " + objarr[2].length());
+				System.out.println("size " + spec.mapDataSize);
+				System.out.println("type " + spec.mapDataType);*/
+				
+				if (objarr.length > 1) { // There is a size value.
 					dbobj.size = Integer.parseInt(objarr[1]);
 				}
 				args.objectSpec[i] = dbobj;
@@ -270,7 +279,7 @@ public class Main implements Log.Callback {
 		else {
 			args.objectSpec = new DBObjectSpec[1];
 			DBObjectSpec dbobj = new DBObjectSpec(); 
-			dbobj.type = 'I';	// If the object is not specified, it has one bin of integer type
+			dbobj.type = 'I';	// If the object is not specified, it has one bin of integer type.
 			args.objectSpec[0] = dbobj;
 		}
 		
@@ -402,10 +411,8 @@ public class Main implements Log.Callback {
 			//+ ", sleepBetweenRetries: " + args.writePolicy.sleepBetweenRetries
 			//+ ", commitLevel: " + args.writePolicy.commitLevel);
 		
-		int binCount = 0;
-		
 		for (DBObjectSpec spec : args.objectSpec) {
-			System.out.print("bin[" + binCount + "]: ");
+			System.out.print("ldt-bin[" + args.itemCount + "]: ");
 			
 			switch (spec.type) {
 			case 'I':
@@ -415,8 +422,18 @@ public class Main implements Log.Callback {
 			case 'S':
 				System.out.println("string[" + spec.size + "]");
 				break;
+			case 'M':
+				switch (DBObjectSpec.mapDataType) {
+				case 'I':
+					System.out.println("map[" + spec.size + "] of " + "integer");
+				case 'S':
+					System.out.println("map[" + spec.size + "] of " + "string[" + DBObjectSpec.mapDataSize + "]");
+				default:
+					//throw new Exception("Unknown DataType: " + spec.type);
+					break;
+				}
 			}
-			binCount++;
+			//binCount++;
 		}
 
 		System.out.println("debug: " + args.debug);
