@@ -24,8 +24,6 @@ import com.aerospike.client.Value;
 import com.aerospike.client.large.LargeList;
 
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Synchronous read/write task.
@@ -71,7 +69,7 @@ public class RWTaskSync extends RWTask {
 		else {
 			results = list.range(Value.get(1000), Value.get(begin));
 		}
-		System.out.println("LLIST CONFIG: *********** " + list.getConfig());
+		//System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 		processLargeRead(key, results);
 	}
 }

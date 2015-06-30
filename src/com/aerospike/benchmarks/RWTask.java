@@ -25,7 +25,6 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import com.aerospike.client.Record;
 import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.GenerationPolicy;
@@ -66,11 +65,6 @@ public abstract class RWTask implements Runnable {
 	}	
 
 	public void run() {
-		// Load data if we're going to be validating.              
-		if (args.validate) {
-			setupValidation();
-		}
-
 		while (valid) {
 			try {
 				readUpdate();
@@ -104,9 +98,8 @@ public abstract class RWTask implements Runnable {
 	}
 	
 	private void readUpdate() {
-		int rand = random.nextInt(100);
-		//if (random.nextInt(100) < args.readPct) {
-		if (rand < args.readPct) {
+		//int rand = random.nextInt(100);
+		if (random.nextInt(100) < args.readPct) {
 			boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
 			
 			int key = random.nextInt(keyCount);
@@ -119,53 +112,6 @@ public abstract class RWTask implements Runnable {
 			int key = random.nextInt(keyCount);
 			doWrite(key, isMultiBin);
 		}		
-	}
-	
-	/**
-	 * Read existing values from the database, save them away in our validation arrays.
-	 */
-	private void setupValidation() {
-		expectedValues = new ExpectedValue[keyCount];
-		
-		// Load starting values
-		for (int i = 0; i < keyCount; i++) {
-			Bin[] bins = null;
-			int generation = 0;
-			
-			try {
-				Key key = new Key(args.namespace, args.setName, keyStart + i);
-				Record record = client.get(args.readPolicy, key);
-				
-				if (record != null && record.bins != null) {
-					Map<String,Object> map = record.bins;
-					int max = map.size();
-					bins = new Bin[max];
-					
-					for (int j = 0; j < max; j++) {
-						String name = Integer.toString(j);
-						bins[j] = new Bin(name, map.get(name));
-					}
-					generation = record.generation;
-				}
-				counters.read.count.getAndIncrement();
-			}
-			catch (Exception e) {				
-				readFailure(e);
-			}
-			expectedValues[i] = new ExpectedValue(bins, generation);
-		}
-
-		// Tell the global counter that this task is finished loading
-		this.counters.loadValuesFinishedTasks.incrementAndGet();
-
-		// Wait for all tasks to be finished loading
-		while (! this.counters.loadValuesFinished.get()) {
-			try {
-				Thread.sleep(10);
-			} catch (Exception e) {
-				System.out.println("Can't sleep while waiting for all values to load");
-			}
-		}
 	}
 	
 	/**
@@ -194,7 +140,7 @@ public abstract class RWTask implements Runnable {
 			else {
 				// Pick '%' items and update each one.
 				for (int i = 0; i < (int) Math.ceil((args.itemCount * args.updatePct) / 100); i++) {
-					key = new Key(args.namespace, args.setName, random.nextInt(keyCount));
+					key = new Key(args.namespace, args.setName, keyStart + keyIdx);
 					if (DBObjectSpec.type == 'M') {
 						entry.put("key", bins[0].value);
 			        	entry.put("value", bins[0].value);
@@ -205,9 +151,6 @@ public abstract class RWTask implements Runnable {
 					}
 					bins = args.getBins(random, multiBin);
 				}
-			}
-			if (args.validate) {
-				this.expectedValues[keyIdx].write(bins);
 			}
 		}
 		catch (AerospikeException ae) {
@@ -224,10 +167,7 @@ public abstract class RWTask implements Runnable {
 	protected void doRead(int keyIdx, boolean multiBin) {
 		try {
 			Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
-			
-			for (int i = 0; i < expectedValues.length; i++) {
-				largeListGet(key);
-			}
+			largeListGet(key);
 		}
 		catch (AerospikeException ae) {
 			readFailure(ae);

@@ -81,10 +81,10 @@ public class Main implements Log.Callback {
 		Options options = new Options();
 		options.addOption("h", "hosts", true, "Set the Aerospike host node.");
 		options.addOption("p", "port", true, "Set the port on which to connect to Aerospike.");
-		options.addOption("U", "user", true, "User name");
-		options.addOption("P", "password", true, "Password");
-		options.addOption("n", "namespace", true, "Set the Aerospike namespace. Default: test");
-        options.addOption("s", "set", true, "Set the Aerospike set name. Default: testset");
+		options.addOption("U", "user", true, "User name.");
+		options.addOption("P", "password", true, "Password.");
+		options.addOption("n", "namespace", true, "Set the Aerospike namespace. Default: test.");
+        options.addOption("s", "set", true, "Set the Aerospike set name. Default: testset.");
 		options.addOption("k", "keys", true,
 			"Set the number of keys the client is dealing with. " + 
 			"If using an 'insert' workload (detailed below), the client will write this " + 
@@ -94,16 +94,17 @@ public class Main implements Log.Callback {
 			);
 		
 		// Key type has been changed to integer, so this option is no longer relevant.
-		// Leave in (and ignore) so existing benchmark scripts do not break.
+		// Leave in (and ignore).
 		options.addOption("l", "keylength", true, "Not used anymore since key is an integer.");
 		
 		options.addOption("o", "objectSpec", true, 
-			"I | S:<size> | M:<size>\n" +
+			"I | S:<size> | M:<type>:<size>\n" +
 			"Set the type of object(s) to use in Aerospike transactions. Type can be 'I' " +
 			"for integer, 'S' for string, or 'M' for map. If type is 'I' (integer), " + 
 			"do not set a size (integers are always 8 bytes). If object_type is 'S' " + 
 			"(string), this value represents the length of the string. If object_type is 'M' " + 
-			"(map), this value represents the size of the map."
+			"(map), type represents the type of data which can be 'I' or 'S', and size is the" +
+			"length of the string if type is 'S'."
 			);
 		options.addOption("R", "random", false, 
 			"Use dynamically generated random bin values instead of default static fixed bin values."
@@ -154,7 +155,6 @@ public class Main implements Log.Callback {
 			"Latency columns are cumulative. If a transaction takes 9ms, it will be included in both the >1ms and >8ms columns."
 			);
 		
-		//options.addOption("v", "validate", false, "Validate data.");
 		options.addOption("D", "debug", false, "Run benchmarks in debug mode.");
 		options.addOption("u", "usage", false, "Print usage.");
 
@@ -162,7 +162,7 @@ public class Main implements Log.Callback {
 		options.addOption("IC", "itemCount", true, "Number of items in the LDT. Default: 100");
 		options.addOption("IS", "itemSize", true, "Item size in bytes. Default: 8");
 		
-		// Parse the command line arguments
+		// Parse the command line arguments.
 		CommandLineParser parser = new PosixParser();
 		CommandLine line = parser.parse(options, commandLineArgs);		
 		String[] extra = line.getArgs();
@@ -262,7 +262,9 @@ public class Main implements Log.Callback {
 				DBObjectSpec dbobj = new DBObjectSpec();
 				if ((DBObjectSpec.type = objarr[0].charAt(0)) == 'M') {
 					DBObjectSpec.mapDataType = objarr[1].charAt(0);
-					DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
+					if (DBObjectSpec.mapDataType != 'I') {
+						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
+					}
 				}
 				
 				System.out.println("type: " + DBObjectSpec.type);
@@ -357,10 +359,6 @@ public class Main implements Log.Callback {
 			this.nThreads = 16;
 		}
 
-		if (line.hasOption("validate")) {
-			args.validate = true;
-		}
-
 		if (line.hasOption("debug")) {
 			args.debug = true;
 		}		 
@@ -400,50 +398,41 @@ public class Main implements Log.Callback {
 		System.out.println("keys: " + this.nKeys
 			+ ", start key: " + this.startKey
 			+ ", transactions: " + args.transactionLimit
-			//+ ", bins: " + args.nBins
+			+ ", items: " + args.itemCount
 			+ ", random values: " + (args.fixedBins == null)
 			+ ", throughput: " + (args.throughput == 0 ? "unlimited" : (args.throughput + " tps")));
 	
 		if (args.workload != Workload.INITIALIZE) {
-			System.out.println("read policy: timeout: " + args.readPolicy.timeout
-				+ ", maxRetries: " + args.readPolicy.maxRetries 
-				+ ", sleepBetweenRetries: " + args.readPolicy.sleepBetweenRetries
-				+ ", replica: " + args.readPolicy.replica);
+			System.out.println("read policy: timeout: " + args.readPolicy.timeout);
 		}
 
 		System.out.println("write policy: timeout: " + args.writePolicy.timeout);
-			//+ ", maxRetries: " + args.writePolicy.maxRetries
-			//+ ", sleepBetweenRetries: " + args.writePolicy.sleepBetweenRetries
-			//+ ", commitLevel: " + args.writePolicy.commitLevel);
 		
-		for (DBObjectSpec spec : args.objectSpec) {
-			System.out.print("ldt-bin[" + args.itemCount + "]: ");
-			
-			switch (DBObjectSpec.type) {
+		System.out.print("ldt-bin[" + args.itemCount + "]: ");
+		
+		switch (DBObjectSpec.type) {
+		case 'I':
+			System.out.println("integer");
+			break;
+		
+		case 'S':
+			System.out.println("string[" + DBObjectSpec.size + "]");
+			break;
+		case 'M':
+			switch (DBObjectSpec.mapDataType) {
 			case 'I':
-				System.out.println("integer");
-				break;
-			
+				System.out.println("map of " + "integer");
 			case 'S':
-				System.out.println("string[" + DBObjectSpec.size + "]");
+				System.out.println("map of " + "string[" + DBObjectSpec.mapDataSize + "]");
+			default:
+				//throw new Exception("Unknown DataType: " + spec.type);
 				break;
-			case 'M':
-				switch (DBObjectSpec.mapDataType) {
-				case 'I':
-					System.out.println("map of " + "integer");
-				case 'S':
-					System.out.println("map of " + "string[" + DBObjectSpec.mapDataSize + "]");
-				default:
-					//throw new Exception("Unknown DataType: " + spec.type);
-					break;
-				}
 			}
-			//binCount++;
 		}
 		
 		System.out.println("debug: " + args.debug);
 		
-		Log.Level level = (args.debug)? Log.Level.DEBUG : Log.Level.INFO;
+		Log.Level level = (args.debug) ? Log.Level.DEBUG : Log.Level.INFO;
 		Log.setLevel(level);
 		Log.setCallback(this);		
 
@@ -527,13 +516,14 @@ public class Main implements Log.Callback {
 		
 		for (int i = 0 ; i < this.nThreads; i++) {
 			RWTask rt;
-			if (args.validate) {
+			/*if (args.validate) {
 				int tstart = this.startKey + ((int) (this.nKeys*(((float) i)/this.nThreads)));			
 				int tkeys = (int) (this.nKeys*(((float) (i+1))/this.nThreads)) - (int) (this.nKeys*(((float) i)/this.nThreads));
 				rt = new RWTaskSync(client, args, counters, tstart, tkeys);
 			} else {
 				rt = new RWTaskSync(client, args, counters, this.startKey, this.nKeys);
-			}
+			}*/
+			rt = new RWTaskSync(client, args, counters, this.startKey, this.nKeys);
 			tasks[i] = rt;
 			es.execute(rt);                                  
 		}
@@ -543,14 +533,14 @@ public class Main implements Log.Callback {
 
 	private void collectRWStats(RWTask[] tasks, AsyncClient client) throws Exception {		
 		// wait for all the tasks to finish setting up for validation
-		if (args.validate) {
+		/*if (args.validate) {
 			while(counters.loadValuesFinishedTasks.get() < this.nThreads) {
 				Thread.sleep(1000);
 				//System.out.println("tasks done = "+counters.loadValuesFinishedTasks.get()+ ", g_ntasks = "+g_ntasks);
 			}
 			// set flag that everyone is ready - this will allow the individual tasks to go
 			counters.loadValuesFinished.set(true);
-		}
+		}*/
 		
 		long transactionTotal = 0;
 

@@ -34,7 +34,6 @@ public class Arguments {
 	public int writeMultiBinPct;
 	public int throughput;
 	public long transactionLimit;
-	public boolean validate;
 	public boolean debug;
 	public Bin[] fixedBins;
 	public Bin[] fixedBin;
