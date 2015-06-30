@@ -256,32 +256,41 @@ public class Main implements Log.Callback {
 		
 		if (line.hasOption("objectSpec")) {
 			String[] objectsArr = line.getOptionValue("objectSpec").split(",");
-			args.objectSpec = new DBObjectSpec[objectsArr.length];
+			args.objectSpec = new DBObjectSpec();
 			for (int i=0; i < objectsArr.length; i++) {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
 				if ((DBObjectSpec.type = objarr[0].charAt(0)) == 'M') {
 					DBObjectSpec.mapDataType = objarr[1].charAt(0);
-					if (DBObjectSpec.mapDataType != 'I') {
+					if (DBObjectSpec.mapDataType == 'S') {
 						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
+					} 
+					else if (DBObjectSpec.mapDataType == 'M') {
+						DBObjectSpec.mapMapDataType = objarr[2].charAt(0);
+						if (DBObjectSpec.mapMapDataType == 'S') {
+							DBObjectSpec.mapMapDataSize = Integer.parseInt(objarr[3]);
+						}
 					}
 				}
 				
 				System.out.println("type: " + DBObjectSpec.type);
 				System.out.println("size " + DBObjectSpec.mapDataSize);
-				System.out.println("type " + DBObjectSpec.mapDataType);
+				System.out.println("mapType " + DBObjectSpec.mapDataType);
+				System.out.println("mapSize " + DBObjectSpec.mapDataSize);
+				System.out.println("mapMapType " + DBObjectSpec.mapMapDataType);
+				System.out.println("mapMapSize " + DBObjectSpec.mapMapDataSize);
 				
-				if (objarr.length > 1 && DBObjectSpec.type != 'M') { // There is a size value.
+				if (objarr.length > 1 && DBObjectSpec.type == 'S') { // There is a size value.
 					DBObjectSpec.size = Integer.parseInt(objarr[1]);
 				}
-				args.objectSpec[i] = dbobj;
+				args.objectSpec = dbobj;
 			}
 		}
 		else {
-			args.objectSpec = new DBObjectSpec[1];
+			args.objectSpec = new DBObjectSpec();
 			DBObjectSpec dbobj = new DBObjectSpec(); 
 			DBObjectSpec.type = 'I';	// If the object is not specified, it has one bin of integer type.
-			args.objectSpec[0] = dbobj;
+			args.objectSpec = dbobj;
 		}
 		
 		args.readPct = 50;

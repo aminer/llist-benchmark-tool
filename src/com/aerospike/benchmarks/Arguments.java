@@ -26,7 +26,7 @@ public class Arguments {
 	public String namespace;
 	public String setName;
 	public Workload workload;
-	public DBObjectSpec[] objectSpec;
+	public DBObjectSpec objectSpec;
 	public Policy readPolicy;
 	public WritePolicy writePolicy;
 	public int readPct;
@@ -52,18 +52,16 @@ public class Arguments {
 	}
 
 	public Bin[] getBins(RandomShift random, boolean multiBin) {
-		
 		if (fixedBins != null) {
 		    return (multiBin) ? fixedBins : fixedBin;
 		}
 		
 		int binCount = (multiBin) ? itemCount : 1;
 		Bin[] bins = new Bin[binCount];
-		int specLength = objectSpec.length;
 		
 		for (int i = 0; i < binCount; i++) {
 			String name = Integer.toString(i);
-			Value value = genValue(random, objectSpec[i % specLength]);
+			Value value = genValue(random, objectSpec);
 			bins[i] = new Bin(name, value);
 		}
 		return bins;
@@ -83,7 +81,7 @@ public class Arguments {
 		case 'S':
 			sb = new StringBuilder(DBObjectSpec.size);
             for (int i = 0; i < DBObjectSpec.size; i++) {
-            	// Append ascii value between ordinal 33 and 127.
+            	// Append ASCII value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
 			return Value.get(sb.toString());
@@ -102,7 +100,7 @@ public class Arguments {
 			else if (DBObjectSpec.mapDataType == 'S') {
 				sb = new StringBuilder(DBObjectSpec.mapDataSize);
 				for (int j = 0; j < DBObjectSpec.mapDataSize; j++) {
-					// Append ascii value between ordinal 33 and 127.
+					// Append ASCII value between ordinal 33 and 127.
 		            sb.append((char)(random.nextInt(94) + 33));
 				}
 				return Value.get(sb.toString());
