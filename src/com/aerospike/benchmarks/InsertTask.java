@@ -57,11 +57,19 @@ public abstract class InsertTask implements Runnable {
 				
 						Key key = new Key(args.namespace, args.setName, keyStart + i);
 						
+						// Add a fixed number of values, 3 is the default
 						if (DBObjectSpec.type == 'M') {
 							// Add entry
 							Map<String, Value> entry = new HashMap<String, Value>();
 							entry.put("key", bins[j].value);
-				        	entry.put("value", bins[j].value);
+				        	entry.put("value1", bins[j].value);
+				        	
+				        	bins = args.getBins(random, true);
+				        	entry.put("value2", bins[j].value);
+				        	
+				        	bins = args.getBins(random, true);
+				        	entry.put("value3", bins[j].value);
+				        	
 				        	System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
 				        	largeListAdd(key, Value.get(entry)); 
 						}

@@ -17,6 +17,9 @@
 
 package com.aerospike.benchmarks;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.Policy;
@@ -86,27 +89,42 @@ public class Arguments {
             }
 			return Value.get(sb.toString());
 		case 'M':
-			//Map<String, Value> entry = new HashMap<String, Value>();
-			if (DBObjectSpec.mapDataType == 'I') {
-				/*Value rand;
-				for (int i = 0; i < spec.size; i++) {
-	        	    rand = Value.get(random.nextInt());
-	            	entry.put("key", rand);
-	            	entry.put("value", rand);
-	            }
-				return Value.get(entry);*/
+			switch (DBObjectSpec.mapDataType) {
+			case 'I':
 				return Value.get(random.nextInt());
-			}
-			else if (DBObjectSpec.mapDataType == 'S') {
+				
+			case 'S':
 				sb = new StringBuilder(DBObjectSpec.mapDataSize);
 				for (int j = 0; j < DBObjectSpec.mapDataSize; j++) {
 					// Append ASCII value between ordinal 33 and 127.
 		            sb.append((char)(random.nextInt(94) + 33));
 				}
 				return Value.get(sb.toString());
+				
+			/*case 'M':
+				Map<String, Value> entry;
+				if (DBObjectSpec.mapMapDataType == 'I') {
+					entry = new HashMap<String, Value>();
+					entry.put("key", Value.get(random.nextInt()));
+		        	entry.put("value", Value.get(random.nextInt()));
+		        	System.out.println("//////// Returning: "+ Value.get(entry));
+					return Value.get(entry);
+				}
+				else if (DBObjectSpec.mapMapDataType == 'S') {
+					entry = new HashMap<String, Value>();
+					sb = new StringBuilder(DBObjectSpec.mapDataSize);
+					for (int j = 0; j < DBObjectSpec.mapMapDataSize; j++) {
+						// Append ASCII value between ordinal 33 and 127.
+			            sb.append((char)(random.nextInt(94) + 33));
+					}
+					entry.put("key", Value.get(sb.toString()));
+		        	entry.put("value", Value.get(sb.toString()));
+					return Value.get(entry);
+				}*/
+
+			default:
+				return Value.getAsNull();
 			}
-		case 'D':
-			return Value.get(System.currentTimeMillis());
 			
 		default:
 			return Value.getAsNull();
