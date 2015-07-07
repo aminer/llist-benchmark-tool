@@ -47,12 +47,11 @@ public class Arguments {
 		// Fixed values are used when the extra random call overhead is not wanted
 		// in the benchmark measurement.
 		RandomShift random = new RandomShift();
-		fixedBins = getBins(random, true);
+		fixedBins = getLDTBins(random, true);
 		fixedBin = new Bin[] {fixedBins[0]};
 	}
 
-	public Bin[] getBins(RandomShift random, boolean multiBin) {
-		//System.out.println("HERE::::");
+	public Bin[] getLDTBins(RandomShift random, boolean multiBin) {
 		if (fixedBins != null) {
 		    return (multiBin) ? fixedBins : fixedBin;
 		}
@@ -80,8 +79,8 @@ public class Arguments {
             	// Append ASCII value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
-            System.out.println("yyyy Returning: "+ Value.get(sb.toString()));
 			return Value.get(sb.toString());
+			
 		case 'M':
 			switch (DBObjectSpec.mapDataType) {
 			case 'I':

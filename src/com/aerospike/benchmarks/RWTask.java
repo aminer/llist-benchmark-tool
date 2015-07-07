@@ -35,13 +35,11 @@ import com.aerospike.client.util.Util;
  * Random Read/Write workload task.
  */
 public abstract class RWTask implements Runnable {
-
 	final AerospikeClient client;
 	final Arguments args;
 	final CounterStore counters;
 	final RandomShift random;
 	final WritePolicy writePolicyGeneration;
-	ExpectedValue[] expectedValues;
 	final int keyStart;
 	final int keyCount;
 	volatile boolean valid;
@@ -114,7 +112,7 @@ public abstract class RWTask implements Runnable {
 	 * Write the key at the given index
 	 */
 	protected void doWrite(int keyIdx, boolean multiBin) {
-		Bin[] bins = args.getBins(random, multiBin);
+		Bin[] bins = args.getLDTBins(random, multiBin);
 		Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
 		
 		try {
@@ -126,7 +124,7 @@ public abstract class RWTask implements Runnable {
 					entry.put("key", Value.get(keyStart + keyIdx));
 					
 					for (int i = 0; i < DBObjectSpec.mapValCount; i++) {
-						bins = args.getBins(random, multiBin);
+						bins = args.getLDTBins(random, multiBin);
 						entry.put("value" + i, bins[random.nextInt(args.itemCount)].value);
 					}
 		        	
@@ -147,7 +145,7 @@ public abstract class RWTask implements Runnable {
 						entry.put("key", Value.get(keyStart + keyIdx));
 						
 						for (int j = 0; j < DBObjectSpec.mapValCount; j++) {
-							bins = args.getBins(random, multiBin);
+							bins = args.getLDTBins(random, multiBin);
 							entry.put("value" + j, bins[random.nextInt(args.itemCount)].value);
 						}
 			        	
@@ -155,7 +153,7 @@ public abstract class RWTask implements Runnable {
 			        	largeListUpdate(key, Value.get(entry)); 
 					}
 					else {
-						bins = args.getBins(random, multiBin);
+						bins = args.getLDTBins(random, multiBin);
 						largeListUpdate(key, bins[random.nextInt(args.itemCount)].value); 
 					}
 				}

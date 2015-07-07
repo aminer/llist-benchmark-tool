@@ -63,16 +63,26 @@ public class RWTaskSync extends RWTask {
 	
 	protected void largeListGet(Key key, int count) throws AerospikeException {
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
-		List<?> results;
+		List<?> results = null;
 		
 		/*long begin = System.currentTimeMillis();
 		if (counters.read.latency != null) {
-			results = list.range(Value.get(1000), Value.get(begin));
+			try {
+				results = list.range(Value.get(1000), Value.get(begin));
+			} catch (AerospikeException e) {
+				System.out.println(e.getMessage());
+			}
+			
+			
 			long elapsed = System.currentTimeMillis() - begin;
 			counters.read.latency.add(elapsed);
 		}
 		else {
-			results = list.range(Value.get(1000), Value.get(begin));
+			try {
+				results = list.range(Value.get(1000), Value.get(begin));
+			} catch (AerospikeException e) {
+				System.out.println(e.getMessage());
+			}
 		}*/
 		results = list.findFirst(count);
 		//System.out.println("LLIST CONFIG: *********** " + list.getConfig());

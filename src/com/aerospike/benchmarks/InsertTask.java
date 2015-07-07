@@ -61,15 +61,15 @@ public abstract class InsertTask implements Runnable {
 							entry.put("key", Value.get(keyStart + i + j));
 							
 							for (int k = 0; k < DBObjectSpec.mapValCount; k++) {
-								bins = args.getBins(random, true);
+								bins = args.getLDTBins(random, true);
 								entry.put("value" + k, bins[j].value);
 							}
 				        	
-				        	System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
+				        	//System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
 				        	largeListAdd(key, Value.get(entry)); 
 						}
 						else {
-							bins = args.getBins(random, true);
+							bins = args.getLDTBins(random, true);
 							//System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
 							largeListAdd(key, bins[j].value); 
 						}
