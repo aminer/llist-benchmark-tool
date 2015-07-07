@@ -22,6 +22,5 @@ class DBObjectSpec {
 	static int size;
 	static char mapDataType;
 	static int mapDataSize;
-	static char mapMapDataType;
-	static int mapMapDataSize;
+	static int mapValCount; // Specifies how many entry inside a map
 }

@@ -17,9 +17,6 @@
 
 package com.aerospike.benchmarks;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.Policy;
@@ -55,6 +52,7 @@ public class Arguments {
 	}
 
 	public Bin[] getBins(RandomShift random, boolean multiBin) {
+		//System.out.println("HERE::::");
 		if (fixedBins != null) {
 		    return (multiBin) ? fixedBins : fixedBin;
 		}
@@ -76,17 +74,13 @@ public class Arguments {
 		case 'I':
 			return Value.get(random.nextInt());
 			
-		case 'B':
-			byte[] ba = new byte[DBObjectSpec.size];
-			random.nextBytes(ba);
-			return Value.get(ba);
-				
 		case 'S':
 			sb = new StringBuilder(DBObjectSpec.size);
             for (int i = 0; i < DBObjectSpec.size; i++) {
             	// Append ASCII value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
+            System.out.println("yyyy Returning: "+ Value.get(sb.toString()));
 			return Value.get(sb.toString());
 		case 'M':
 			switch (DBObjectSpec.mapDataType) {
@@ -100,27 +94,6 @@ public class Arguments {
 		            sb.append((char)(random.nextInt(94) + 33));
 				}
 				return Value.get(sb.toString());
-				
-			/*case 'M':
-				Map<String, Value> entry;
-				if (DBObjectSpec.mapMapDataType == 'I') {
-					entry = new HashMap<String, Value>();
-					entry.put("key", Value.get(random.nextInt()));
-		        	entry.put("value", Value.get(random.nextInt()));
-		        	System.out.println("//////// Returning: "+ Value.get(entry));
-					return Value.get(entry);
-				}
-				else if (DBObjectSpec.mapMapDataType == 'S') {
-					entry = new HashMap<String, Value>();
-					sb = new StringBuilder(DBObjectSpec.mapDataSize);
-					for (int j = 0; j < DBObjectSpec.mapMapDataSize; j++) {
-						// Append ASCII value between ordinal 33 and 127.
-			            sb.append((char)(random.nextInt(94) + 33));
-					}
-					entry.put("key", Value.get(sb.toString()));
-		        	entry.put("value", Value.get(sb.toString()));
-					return Value.get(entry);
-				}*/
 
 			default:
 				return Value.getAsNull();

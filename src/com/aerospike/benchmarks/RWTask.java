@@ -98,18 +98,14 @@ public abstract class RWTask implements Runnable {
 	}
 	
 	private void readUpdate() {
-		//int rand = random.nextInt(100);
+		int key = random.nextInt(keyCount + args.itemCount);
 		if (random.nextInt(100) < args.readPct) {
 			boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
-			
-			int key = random.nextInt(keyCount);
 			doRead(key, isMultiBin);
 		}
 		else {
 			boolean isMultiBin = random.nextInt(100) < args.writeMultiBinPct;
-			
 			// Single record write.
-			int key = random.nextInt(keyCount);
 			doWrite(key, isMultiBin);
 		}		
 	}
@@ -120,36 +116,49 @@ public abstract class RWTask implements Runnable {
 	protected void doWrite(int keyIdx, boolean multiBin) {
 		Key key;
 		Bin[] bins = args.getBins(random, multiBin);
+		key = new Key(args.namespace, args.setName, keyStart + keyIdx);
 		
 		try {
-			// Update 1 item picked randomly.
-			// Create entry
-			Map<String, Value> entry = new HashMap<String, Value>();
-			
 			if (args.updateOne) {
-				key = new Key(args.namespace, args.setName, keyIdx);
 				if (DBObjectSpec.type == 'M') {
-					entry.put("key", bins[0].value);
-		        	entry.put("value", bins[0].value);
-					largeListUpdate(key, Value.get(entry)); 
+					// Update 1 item picked randomly.
+					// Create entry
+					Map<String, Value> entry = new HashMap<String, Value>();
+					entry.put("key", Value.get(random.nextInt(keyCount + args.itemCount)));
+					
+					for (int i = 0; i < DBObjectSpec.mapValCount; i++) {
+						bins = args.getBins(random, multiBin);
+						entry.put("value" + i, bins[random.nextInt(args.itemCount)].value);
+					}
+		        	
+		        	System.out.println("******* Item " + " Inserting: " + Value.get(entry));
+		        	largeListUpdate(key, Value.get(entry)); 
 				}
 				else {
-					largeListUpdate(key, bins[0].value); 
+					largeListUpdate(key, bins[random.nextInt(args.itemCount)].value); 
 				}
 			}
 			else {
 				// Pick '%' items and update each one.
-				for (int i = 0; i < (int) Math.ceil((args.itemCount * args.updatePct) / 100); i++) {
-					key = new Key(args.namespace, args.setName, keyStart + keyIdx);
+				for (int i = 0; i < (int) Math.ceil((args.itemCount * args.updatePct) / 100.0); i++) {
 					if (DBObjectSpec.type == 'M') {
-						entry.put("key", bins[0].value);
-			        	entry.put("value", bins[0].value);
-						largeListUpdate(key, Value.get(entry)); 
+						// Update 1 item picked randomly.
+						// Create entry
+						Map<String, Value> entry = new HashMap<String, Value>();
+						entry.put("key", Value.get(random.nextInt(keyCount + args.itemCount)));
+						
+						for (int j = 0; j < DBObjectSpec.mapValCount; j++) {
+							bins = args.getBins(random, multiBin);
+							entry.put("value" + j, bins[random.nextInt(args.itemCount)].value);
+						}
+			        	
+			        	System.out.println("******* Item " + " Inserting: " + Value.get(entry));
+			        	largeListUpdate(key, Value.get(entry)); 
 					}
 					else {
-						largeListUpdate(key, bins[0].value); 
+						bins = args.getBins(random, multiBin);
+						largeListUpdate(key, bins[random.nextInt(args.itemCount)].value); 
 					}
-					bins = args.getBins(random, multiBin);
 				}
 			}
 		}

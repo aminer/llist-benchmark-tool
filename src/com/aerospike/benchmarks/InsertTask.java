@@ -48,32 +48,29 @@ public abstract class InsertTask implements Runnable {
 			for (int i = 0; i < keyCount; i++) {
 				for (int j = 0; j < args.itemCount; j++) {
 					try {
-						bins = args.getBins(random, true);
-						
-						
 						//System.out.println("type: " + DBObjectSpec.type);
 						//System.out.println("size " + objarr[1].substring(0, objarr[1].length() - 1));
 						//System.out.println("type " + objarr[1].charAt(objarr[1].length() - 1));
 				
-						Key key = new Key(args.namespace, args.setName, keyStart + i);
+						Key key = new Key(args.namespace, args.setName, keyStart + i + j);
 						
-						// Add a fixed number of values, 3 is the default
+						// Add a fixed number of values (using DBObjectSpec.mapValCount).
 						if (DBObjectSpec.type == 'M') {
 							// Add entry
 							Map<String, Value> entry = new HashMap<String, Value>();
-							entry.put("key", bins[j].value);
-				        	entry.put("value1", bins[j].value);
-				        	
-				        	bins = args.getBins(random, true);
-				        	entry.put("value2", bins[j].value);
-				        	
-				        	bins = args.getBins(random, true);
-				        	entry.put("value3", bins[j].value);
+							entry.put("key", Value.get(keyStart + i + j));
+							
+							for (int k = 0; k < DBObjectSpec.mapValCount; k++) {
+								bins = args.getBins(random, true);
+								entry.put("value" + i, bins[j].value);
+							}
 				        	
 				        	System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
 				        	largeListAdd(key, Value.get(entry)); 
 						}
 						else {
+							bins = args.getBins(random, true);
+							System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
 							largeListAdd(key, bins[j].value); 
 						}
 					}

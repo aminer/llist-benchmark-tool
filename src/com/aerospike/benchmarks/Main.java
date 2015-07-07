@@ -257,33 +257,26 @@ public class Main implements Log.Callback {
 		if (line.hasOption("objectSpec")) {
 			String[] objectsArr = line.getOptionValue("objectSpec").split(",");
 			args.objectSpec = new DBObjectSpec();
-			for (int i=0; i < objectsArr.length; i++) {
+			for (int i = 0; i < objectsArr.length; i++) {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
 				if ((DBObjectSpec.type = objarr[0].charAt(0)) == 'M') {
-					DBObjectSpec.mapDataType = objarr[1].charAt(0);
+					DBObjectSpec.mapValCount = Integer.parseInt(objarr[1]); // How many entries inside the map.
+					DBObjectSpec.mapDataType = objarr[2].charAt(0);
 					if (DBObjectSpec.mapDataType == 'S') {
-						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
+						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[3]);
 					} 
-					else if (DBObjectSpec.mapDataType == 'M') {
-						DBObjectSpec.mapMapDataType = objarr[2].charAt(0);
-						if (DBObjectSpec.mapMapDataType == 'S') {
-							DBObjectSpec.mapMapDataSize = Integer.parseInt(objarr[3]);
-						}
-					}
 				}
-				
-				System.out.println("type: " + DBObjectSpec.type);
-				System.out.println("size " + DBObjectSpec.mapDataSize);
-				System.out.println("mapType " + DBObjectSpec.mapDataType);
-				System.out.println("mapSize " + DBObjectSpec.mapDataSize);
-				System.out.println("mapMapType " + DBObjectSpec.mapMapDataType);
-				System.out.println("mapMapSize " + DBObjectSpec.mapMapDataSize);
 				
 				if (objarr.length > 1 && DBObjectSpec.type == 'S') { // There is a size value.
 					DBObjectSpec.size = Integer.parseInt(objarr[1]);
 				}
 				args.objectSpec = dbobj;
+				System.out.println("type: " + DBObjectSpec.type);
+				System.out.println("size: " + DBObjectSpec.size);
+				System.out.println("mapType " + DBObjectSpec.mapDataType);
+				System.out.println("mapSize " + DBObjectSpec.mapDataSize);
+				System.out.println("mapValCount " + DBObjectSpec.mapValCount);
 			}
 		}
 		else {
