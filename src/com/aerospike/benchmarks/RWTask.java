@@ -114,9 +114,8 @@ public abstract class RWTask implements Runnable {
 	 * Write the key at the given index
 	 */
 	protected void doWrite(int keyIdx, boolean multiBin) {
-		Key key;
 		Bin[] bins = args.getBins(random, multiBin);
-		key = new Key(args.namespace, args.setName, keyStart + keyIdx);
+		Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
 		
 		try {
 			if (args.updateOne) {
@@ -124,14 +123,14 @@ public abstract class RWTask implements Runnable {
 					// Update 1 item picked randomly.
 					// Create entry
 					Map<String, Value> entry = new HashMap<String, Value>();
-					entry.put("key", Value.get(random.nextInt(keyCount + args.itemCount)));
+					entry.put("key", Value.get(keyStart + keyIdx));
 					
 					for (int i = 0; i < DBObjectSpec.mapValCount; i++) {
 						bins = args.getBins(random, multiBin);
 						entry.put("value" + i, bins[random.nextInt(args.itemCount)].value);
 					}
 		        	
-		        	System.out.println("******* Item " + " Inserting: " + Value.get(entry));
+		        	//System.out.println("******* Item " + " Inserting: " + Value.get(entry));
 		        	largeListUpdate(key, Value.get(entry)); 
 				}
 				else {
@@ -145,14 +144,14 @@ public abstract class RWTask implements Runnable {
 						// Update 1 item picked randomly.
 						// Create entry
 						Map<String, Value> entry = new HashMap<String, Value>();
-						entry.put("key", Value.get(random.nextInt(keyCount + args.itemCount)));
+						entry.put("key", Value.get(keyStart + keyIdx));
 						
 						for (int j = 0; j < DBObjectSpec.mapValCount; j++) {
 							bins = args.getBins(random, multiBin);
 							entry.put("value" + j, bins[random.nextInt(args.itemCount)].value);
 						}
 			        	
-			        	System.out.println("******* Item " + " Inserting: " + Value.get(entry));
+			        	//System.out.println("******* Item " + " Inserting: " + Value.get(entry));
 			        	largeListUpdate(key, Value.get(entry)); 
 					}
 					else {
@@ -176,7 +175,14 @@ public abstract class RWTask implements Runnable {
 	protected void doRead(int keyIdx, boolean multiBin) {
 		try {
 			Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
-			largeListGet(key);
+			
+			if (args.updateOne) {
+				largeListGet(key, 1);
+			}
+			else {
+				// Pick '%' items and update each one.
+				largeListGet(key, (int) Math.ceil((args.itemCount * args.updatePct) / 100.0));
+			}
 		}
 		catch (AerospikeException ae) {
 			readFailure(ae);
@@ -238,5 +244,5 @@ public abstract class RWTask implements Runnable {
 	}
 
 	protected abstract void largeListUpdate(Key key, Value value) throws AerospikeException;
-	protected abstract void largeListGet(Key key) throws AerospikeException;
+	protected abstract void largeListGet(Key key, int count) throws AerospikeException;
 }

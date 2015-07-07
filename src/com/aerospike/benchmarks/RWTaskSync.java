@@ -61,11 +61,11 @@ public class RWTaskSync extends RWTask {
 		}
 	}
 	
-	protected void largeListGet(Key key) throws AerospikeException {
+	protected void largeListGet(Key key, int count) throws AerospikeException {
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		List<?> results;
 		
-		long begin = System.currentTimeMillis();
+		/*long begin = System.currentTimeMillis();
 		if (counters.read.latency != null) {
 			results = list.range(Value.get(1000), Value.get(begin));
 			long elapsed = System.currentTimeMillis() - begin;
@@ -73,7 +73,8 @@ public class RWTaskSync extends RWTask {
 		}
 		else {
 			results = list.range(Value.get(1000), Value.get(begin));
-		}
+		}*/
+		results = list.findFirst(count);
 		//System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 		processLargeRead(key, results);
 	}

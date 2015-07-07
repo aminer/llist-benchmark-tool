@@ -62,7 +62,7 @@ public abstract class InsertTask implements Runnable {
 							
 							for (int k = 0; k < DBObjectSpec.mapValCount; k++) {
 								bins = args.getBins(random, true);
-								entry.put("value" + i, bins[j].value);
+								entry.put("value" + k, bins[j].value);
 							}
 				        	
 				        	System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
@@ -70,7 +70,7 @@ public abstract class InsertTask implements Runnable {
 						}
 						else {
 							bins = args.getBins(random, true);
-							System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
+							//System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
 							largeListAdd(key, bins[j].value); 
 						}
 					}
