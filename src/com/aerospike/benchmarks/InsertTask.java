@@ -81,7 +81,7 @@ public abstract class InsertTask implements Runnable {
 						writeFailure(e);
 					}
 					
-					// Throttle throughput
+					// Throttle throughput.
 					if (args.throughput > 0) {
 						int transactions = counters.write.count.get();
 						

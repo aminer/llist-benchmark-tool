@@ -35,8 +35,8 @@ public class Arguments {
 	public int throughput;
 	public long transactionLimit;
 	public boolean debug;
-	public Bin[] fixedBins;
-	public Bin[] fixedBin;
+	public Bin[] fixedLDTBins;
+	public Bin[] fixedLDTBin;
 	public int pageSize;
 	public int itemCount;
 	public int itemSize;
@@ -47,13 +47,13 @@ public class Arguments {
 		// Fixed values are used when the extra random call overhead is not wanted
 		// in the benchmark measurement.
 		RandomShift random = new RandomShift();
-		fixedBins = getLDTBins(random, true);
-		fixedBin = new Bin[] {fixedBins[0]};
+		fixedLDTBins = getLDTBins(random, true);
+		fixedLDTBin = new Bin[] {fixedLDTBins[0]};
 	}
 
 	public Bin[] getLDTBins(RandomShift random, boolean multiBin) {
-		if (fixedBins != null) {
-		    return (multiBin) ? fixedBins : fixedBin;
+		if (fixedLDTBins != null) {
+		    return (multiBin) ? fixedLDTBins : fixedLDTBin;
 		}
 		
 		int binCount = (multiBin) ? itemCount : 1;

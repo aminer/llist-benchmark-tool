@@ -84,7 +84,7 @@ public class Main implements Log.Callback {
 		options.addOption("U", "user", true, "User name.");
 		options.addOption("P", "password", true, "Password.");
 		options.addOption("n", "namespace", true, "Set the Aerospike namespace. Default: test.");
-        options.addOption("s", "set", true, "Set the Aerospike set name. Default: testset.");
+        options.addOption("s", "set", true, "Set the Aerospike set name. Default: set.");
 		options.addOption("k", "keys", true,
 			"Set the number of keys the client is dealing with. " + 
 			"If using an 'insert' workload (detailed below), the client will write this " + 
@@ -93,18 +93,14 @@ public class Main implements Log.Callback {
 			"start_value + num_keys."
 			);
 		
-		// Key type has been changed to integer, so this option is no longer relevant.
-		// Leave in (and ignore).
-		options.addOption("l", "keylength", true, "Not used anymore since key is an integer.");
-		
 		options.addOption("o", "objectSpec", true, 
-			"I | S:<size> | M:<type>:<size>\n" +
+			"I | S:<size> | M:<msize>:<type>:<size>\n" +
 			"Set the type of object(s) to use in Aerospike transactions. Type can be 'I' " +
 			"for integer, 'S' for string, or 'M' for map. If type is 'I' (integer), " + 
-			"do not set a size (integers are always 8 bytes). If object_type is 'S' " + 
-			"(string), this value represents the length of the string. If object_type is 'M' " + 
-			"(map), type represents the type of data which can be 'I' or 'S', and size is the" +
-			"length of the string if type is 'S'."
+			"do not set a size (integers are always 8 bytes). If type is 'S' " + 
+			"(string), this value represents the length of the string. If type is 'M' " + 
+			"(map), msize (map size), is the number of values inside the map, type represents the type of data " +
+			"which can be 'I' or 'S', and size represents the length of the string if type is 'S'."
 			);
 		options.addOption("R", "random", false, 
 			"Use dynamically generated random bin values instead of default static fixed bin values."
@@ -115,16 +111,11 @@ public class Main implements Log.Callback {
 			"Otherwise, the start_value indicates the smallest value in the working set of keys."
 			);
 		options.addOption("w", "workload", true, 
-			"I | RU,{1,%},<percent>[,<percent2>][,<percent3>]\n" +
+			"I | RU,{o,%},<percent>[,<percent2>][,<percent3>]\n" +
 			"Set the desired workload.\n\n" +  
 			"   -w I sets a linear 'insert' workload.\n\n" +
-			"   -w RU,1,80 picks 1 item randomly and sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
-			"   -w RU,50,80 for 50% of items, sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
-			"      100% of reads will read all bins.\n\n" + 
-			"      100% of writes will write all bins.\n\n" + 
-			"   -w RU,80,60,30 sets a random multi-bin read-update workload with 80% reads and 20% writes.\n\n" + 
-			"      60% of reads will read all bins. 40% of reads will read a single bin.\n\n" + 
-			"      30% of writes will write all bins. 70% of writes will write a single bin."
+			"   -w RU,o,80 picks one item randomly and sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
+			"   -w RU,50,80 for 50% of items, sets a random read-update workload with 80% reads and 20% writes."
 			);
 		options.addOption("g", "throughput", true, 
 			"Set a target transactions per second for the client. The client should not exceed this " + 
@@ -158,9 +149,9 @@ public class Main implements Log.Callback {
 		options.addOption("D", "debug", false, "Run benchmarks in debug mode.");
 		options.addOption("u", "usage", false, "Print usage.");
 
-		options.addOption("PS", "pageSize", true, "Page size in bytes. Default: 4K");
+		options.addOption("PS", "pageSize", true, "Page size in kilobyte. Default: 4K");
 		options.addOption("IC", "itemCount", true, "Number of items in the LDT. Default: 100");
-		options.addOption("IS", "itemSize", true, "Item size in bytes. Default: 8");
+		options.addOption("IS", "itemSize", true, "Item size in byte. Default: 8");
 		
 		// Parse the command line arguments.
 		CommandLineParser parser = new PosixParser();
@@ -213,14 +204,14 @@ public class Main implements Log.Callback {
 			args.pageSize = Integer.parseInt(line.getOptionValue("pageSize"));
 		}
 		else {
-			args.pageSize = 4; // Default LDT page size.
+			args.pageSize = 4096; // Default LDT page size: 4K.
 		}
 				
 		if (line.hasOption("itemCount")) {
 			args.itemCount = Integer.parseInt(line.getOptionValue("itemCount"));
 		}
 		else {
-			args.itemCount = 1; // Default LDT item count.
+			args.itemCount = 100; // Default LDT item count.
 		}
 			
 		if (line.hasOption("itemSize")) {
@@ -241,7 +232,7 @@ public class Main implements Log.Callback {
 			args.setName = line.getOptionValue("set");
 		}
 		else {
-			args.setName = "testset";
+			args.setName = "set";
 		}
 
 		if (line.hasOption("keys")) {
@@ -282,7 +273,7 @@ public class Main implements Log.Callback {
 		else {
 			args.objectSpec = new DBObjectSpec();
 			DBObjectSpec dbobj = new DBObjectSpec(); 
-			DBObjectSpec.type = 'I';	// If the object is not specified, it has one bin of integer type.
+			DBObjectSpec.type = 'I'; // If the object is not specified, it has one bin of integer type.
 			args.objectSpec = dbobj;
 		}
 		
@@ -305,17 +296,16 @@ public class Main implements Log.Callback {
 			else if (workloadType.equals("RU")) {
 				args.workload = Workload.READ_UPDATE;
 
-				if (workloadOpts.length < 3 || workloadOpts.length > 5) {
-					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 3 to 5.");
+				if (workloadOpts.length != 3) {
+					throw new Exception("Invalid workload number of arguments: " + workloadOpts.length + " Expected 3.");
 				}
-				
-				if (workloadOpts.length >= 3) {
+				else {
 					args.readPct = Integer.parseInt(workloadOpts[2]);
 					if (workloadOpts[1].charAt(0) == 'o') {
 						args.updateOne = true;
 					}
 					else {
-						args.updatePct = Integer.parseInt(workloadOpts[1]);
+						args.updatePct = Integer.parseInt(workloadOpts[1]); // Get the %.
 					}
 					
 					if (args.readPct < 0 || args.readPct > 100) {
@@ -401,7 +391,7 @@ public class Main implements Log.Callback {
 			+ ", start key: " + this.startKey
 			+ ", transactions: " + args.transactionLimit
 			+ ", items: " + args.itemCount
-			+ ", random values: " + (args.fixedBins == null)
+			+ ", random values: " + (args.fixedLDTBins == null)
 			+ ", throughput: " + (args.throughput == 0 ? "unlimited" : (args.throughput + " tps")));
 	
 		if (args.workload != Workload.INITIALIZE) {
