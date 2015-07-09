@@ -17,6 +17,7 @@
 
 package com.aerospike.benchmarks;
 
+
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.Policy;
@@ -79,6 +80,7 @@ public class Arguments {
             	// Append ASCII value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
+           
 			return Value.get(sb.toString());
 			
 		case 'M':

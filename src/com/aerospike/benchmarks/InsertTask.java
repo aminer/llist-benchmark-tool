@@ -70,7 +70,7 @@ public abstract class InsertTask implements Runnable {
 						}
 						else {
 							bins = args.getLDTBins(random, true);
-							//System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
+							System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
 							largeListAdd(key, bins[j].value); 
 						}
 					}

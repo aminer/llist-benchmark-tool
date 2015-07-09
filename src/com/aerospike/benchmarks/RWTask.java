@@ -76,7 +76,7 @@ public abstract class RWTask implements Runnable {
 				}
 			}		 
 
-			// Throttle throughput
+			// Throttle throughput.
 			if (args.throughput > 0) {
 				int transactions = counters.write.count.get() + counters.read.count.get();
 				

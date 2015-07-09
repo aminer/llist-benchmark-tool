@@ -111,7 +111,7 @@ public class Main implements Log.Callback {
 			"Otherwise, the start_value indicates the smallest value in the working set of keys."
 			);
 		options.addOption("w", "workload", true, 
-			"I | RU,{o,%},<percent>[,<percent2>][,<percent3>]\n" +
+			"I | RU,{o,%}\n" +
 			"Set the desired workload.\n\n" +  
 			"   -w I sets a linear 'insert' workload.\n\n" +
 			"   -w RU,o,80 picks one item randomly and sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
@@ -252,11 +252,15 @@ public class Main implements Log.Callback {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
 				if ((DBObjectSpec.type = objarr[0].charAt(0)) == 'M') {
-					DBObjectSpec.mapValCount = Integer.parseInt(objarr[1]); // How many entries inside the map.
-					DBObjectSpec.mapDataType = objarr[2].charAt(0);
+					//DBObjectSpec.mapValCount = Integer.parseInt(objarr[1]); // How many entries inside the map.
+					DBObjectSpec.mapDataType = objarr[1].charAt(0);
 					if (DBObjectSpec.mapDataType == 'S') {
-						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[3]);
-					} 
+						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
+						DBObjectSpec.mapValCount = args.itemSize/DBObjectSpec.mapDataSize + 1; // How many entries inside the map.
+						// +1 to avoid 0 (item size < string length)
+					} else {
+						DBObjectSpec.mapValCount = args.itemSize/8 + 1; // How many entries inside the map.
+					}
 				}
 				
 				if (objarr.length > 1 && DBObjectSpec.type == 'S') { // There is a size value.
@@ -267,7 +271,7 @@ public class Main implements Log.Callback {
 				System.out.println("size: " + DBObjectSpec.size);
 				System.out.println("mapType " + DBObjectSpec.mapDataType);
 				System.out.println("mapSize " + DBObjectSpec.mapDataSize);
-				System.out.println("mapValCount " + DBObjectSpec.mapValCount);
+				//System.out.println("mapValCount " + DBObjectSpec.mapValCount);
 			}
 		}
 		else {
