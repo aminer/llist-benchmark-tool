@@ -256,22 +256,32 @@ public class Main implements Log.Callback {
 					DBObjectSpec.mapDataType = objarr[1].charAt(0);
 					if (DBObjectSpec.mapDataType == 'S') {
 						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
-						DBObjectSpec.mapValCount = args.itemSize/DBObjectSpec.mapDataSize + 1; // How many entries inside the map.
+						if (DBObjectSpec.mapDataSize <= 0) {
+							throw new Exception("String length must be > 0.");
+						}
+						//DBObjectSpec.mapValCount = args.itemSize/DBObjectSpec.mapDataSize + 1;
+						// How many entries inside the map.
 						// +1 to avoid 0 (item size < string length)
+						DBObjectSpec.mapValCount = (int) Math.ceil((float)args.itemSize/DBObjectSpec.mapDataSize);
+						//System.out.println("********" + DBObjectSpec.mapValCount);
 					} else {
-						DBObjectSpec.mapValCount = args.itemSize/8 + 1; // How many entries inside the map.
+						DBObjectSpec.mapValCount = (int) Math.ceil((float) args.itemSize/8); // How many entries inside the map.
+						System.out.println("********" + DBObjectSpec.mapValCount);
 					}
 				}
 				
 				if (objarr.length > 1 && DBObjectSpec.type == 'S') { // There is a size value.
 					DBObjectSpec.size = Integer.parseInt(objarr[1]);
+					if (DBObjectSpec.size <= 0) {
+						throw new Exception("String length must be > 0.");
+					}
 				}
 				args.objectSpec = dbobj;
 				System.out.println("type: " + DBObjectSpec.type);
 				System.out.println("size: " + DBObjectSpec.size);
 				System.out.println("mapType " + DBObjectSpec.mapDataType);
 				System.out.println("mapSize " + DBObjectSpec.mapDataSize);
-				//System.out.println("mapValCount " + DBObjectSpec.mapValCount);
+				System.out.println("mapValCount " + args.itemSize + "/" + DBObjectSpec.mapDataSize + " = " + DBObjectSpec.mapValCount);
 			}
 		}
 		else {
@@ -282,8 +292,8 @@ public class Main implements Log.Callback {
 		}
 		
 		args.readPct = 50;
-		args.readMultiBinPct = 100;
-		args.writeMultiBinPct = 100;			
+		//args.readMultiBinPct = 100;
+		//args.writeMultiBinPct = 100;			
 
 		if (line.hasOption("workload")) {
 			String[] workloadOpts = line.getOptionValue("workload").split(",");
@@ -317,13 +327,13 @@ public class Main implements Log.Callback {
 					}
 				}
 				
-				if (workloadOpts.length >= 4) {
+				/*if (workloadOpts.length >= 4) {
 					args.readMultiBinPct = Integer.parseInt(workloadOpts[3]);
 				}
 				
 				if (workloadOpts.length >= 5) {
 					args.writeMultiBinPct = Integer.parseInt(workloadOpts[4]);
-				}
+				}*/
 			}
 			else {
 				throw new Exception("Unknown workload: " + workloadType);
@@ -383,12 +393,12 @@ public class Main implements Log.Callback {
 		
 		if (args.workload == Workload.READ_UPDATE) {
 			System.out.print("read: " + args.readPct + '%');
-			System.out.print(" (all bins: " + args.readMultiBinPct + '%');
-			System.out.print(", single bin: " + (100 - args.readMultiBinPct) + "%)");
+			//System.out.print(" (all bins: " + args.readMultiBinPct + '%');
+			//System.out.print(", single bin: " + (100 - args.readMultiBinPct) + "%)");
 			
 			System.out.print(", write: " + (100 - args.readPct) + '%');
-			System.out.print(" (all bins: " + args.writeMultiBinPct + '%');
-			System.out.println(", single bin: " + (100 - args.writeMultiBinPct) + "%)");
+			//System.out.print(" (all bins: " + args.writeMultiBinPct + '%');
+			//System.out.println(", single bin: " + (100 - args.writeMultiBinPct) + "%)");
 		}
 		
 		System.out.println("keys: " + this.nKeys

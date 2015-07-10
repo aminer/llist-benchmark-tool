@@ -31,8 +31,8 @@ public class Arguments {
 	public Policy readPolicy;
 	public WritePolicy writePolicy;
 	public int readPct;
-	public int readMultiBinPct;
-	public int writeMultiBinPct;
+	//public int readMultiBinPct;
+	//public int writeMultiBinPct;
 	public int throughput;
 	public long transactionLimit;
 	public boolean debug;

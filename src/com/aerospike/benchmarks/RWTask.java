@@ -98,13 +98,15 @@ public abstract class RWTask implements Runnable {
 	private void readUpdate() {
 		int key = random.nextInt(keyCount + args.itemCount);
 		if (random.nextInt(100) < args.readPct) {
-			boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
-			doRead(key, isMultiBin);
+			//boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
+			//doRead(key, isMultiBin);
+			doRead(key, false);
 		}
 		else {
-			boolean isMultiBin = random.nextInt(100) < args.writeMultiBinPct;
+			//boolean isMultiBin = random.nextInt(100) < args.writeMultiBinPct;
 			// Single record write.
-			doWrite(key, isMultiBin);
+			//doWrite(key, isMultiBin);
+			doRead(key, false);
 		}		
 	}
 	
