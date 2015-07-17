@@ -66,8 +66,8 @@ public abstract class InsertTask implements Runnable {
 							bins = args.getLDTBins(random, true);
 							
 							
-							Map<String, Value> entry = new HashMap<String, Value>();
-							entry.put("key", Value.get(keyStart + i));
+							//Map<String, Value> entry = new HashMap<String, Value>();
+							//entry.put("key", Value.get(keyStart + i));
 							//entry.put("value" + i, bins[j].value);
 							
 							/*for (int k = 0; k < DBObjectSpec.mapValCount; k++) {

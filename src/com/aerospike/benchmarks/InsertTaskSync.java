@@ -17,6 +17,9 @@
 
 package com.aerospike.benchmarks;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
@@ -48,13 +51,21 @@ public final class InsertTaskSync extends InsertTask {
 		}
 	}
 
-	private void largeListAdd(Key key, Bin[] value, long timestamp) throws AerospikeException {
+	private void largeListAdd(Key key, Bin[] val, long timestamp) throws AerospikeException {
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		//System.out.println("????????Inserting: " + Value.get(value));
 		
 		try {
 			for (int i = 0; i < args.itemCount; i++) {
-				list.add(value[i].value);
+				if (DBObjectSpec.type == 'M') {
+					Map<String, Value> entry = new HashMap<String, Value>();
+					entry.put("key", Value.get(keyStart + i));
+					entry.put("value" + i, val[i].value);
+					list.add(Value.get(entry));
+				}
+				else {
+					list.add(val[i].value);
+				}
 			}
 			
 		} catch (AerospikeException e) {
