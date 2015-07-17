@@ -249,20 +249,22 @@ public class Main implements Log.Callback {
 		if (line.hasOption("objectSpec")) {
 			String[] objectsArr = line.getOptionValue("objectSpec").split(",");
 			args.objectSpec = new DBObjectSpec();
+			
 			for (int i = 0; i < objectsArr.length; i++) {
 				String[] objarr = objectsArr[i].split(":");
 				DBObjectSpec dbobj = new DBObjectSpec();
+				
 				if ((DBObjectSpec.type = objarr[0].charAt(0)) == 'M') {
-					//DBObjectSpec.mapValCount = Integer.parseInt(objarr[1]); // How many entries inside the map.
 					DBObjectSpec.mapDataType = objarr[1].charAt(0);
+					
 					if (DBObjectSpec.mapDataType == 'S') {
 						DBObjectSpec.mapDataSize = Integer.parseInt(objarr[2]);
+						
 						if (DBObjectSpec.mapDataSize <= 0) {
 							throw new Exception("String length must be > 0.");
 						}
-						//DBObjectSpec.mapValCount = args.itemSize/DBObjectSpec.mapDataSize + 1;
+	
 						// How many entries inside the map.
-						// +1 to avoid 0 (item size < string length)
 						DBObjectSpec.mapValCount = (int) Math.ceil((float)args.itemSize/DBObjectSpec.mapDataSize);
 						//System.out.println("********" + DBObjectSpec.mapValCount);
 					} else {
@@ -292,9 +294,7 @@ public class Main implements Log.Callback {
 			args.objectSpec = dbobj;
 		}
 		
-		args.readPct = 50;
-		//args.readMultiBinPct = 100;
-		//args.writeMultiBinPct = 100;			
+		args.readPct = 50;	
 
 		if (line.hasOption("workload")) {
 			String[] workloadOpts = line.getOptionValue("workload").split(",");
@@ -327,14 +327,6 @@ public class Main implements Log.Callback {
 						throw new Exception("Read-update workload read percentage must be between 0 and 100.");
 					}
 				}
-				
-				/*if (workloadOpts.length >= 4) {
-					args.readMultiBinPct = Integer.parseInt(workloadOpts[3]);
-				}
-				
-				if (workloadOpts.length >= 5) {
-					args.writeMultiBinPct = Integer.parseInt(workloadOpts[4]);
-				}*/
 			}
 			else {
 				throw new Exception("Unknown workload: " + workloadType);
@@ -432,8 +424,7 @@ public class Main implements Log.Callback {
 			case 'S':
 				System.out.println("map of " + "string[" + DBObjectSpec.mapDataSize + "]");
 			default:
-				//throw new Exception("Unknown DataType: " + spec.type);
-				break;
+				throw new Exception("Unknown DataType: " + DBObjectSpec.type);
 			}
 		}
 		
@@ -484,6 +475,7 @@ public class Main implements Log.Callback {
 		System.out.println("start: " + this.startKey);
 		System.out.println("ntasks: " + ntasks);
 		System.out.println("keysPerTask: " + keysPerTask);
+		
 		for (int i = 0; i < ntasks; i++) {
 			InsertTask it = new InsertTaskSync(client, args, counters, start, keysPerTask); 			
 			es.execute(it);
@@ -495,10 +487,8 @@ public class Main implements Log.Callback {
 
 	private void collectInsertStats() throws Exception {	
 		int total = 0;
-		//int max = this.nKeys * args.itemCount;
-		int max = this.nKeys;
 		
-		while (total < max) {
+		while (total < this.nKeys) {
 			long time = System.currentTimeMillis();
 			
 			int	numWrites = this.counters.write.count.getAndSet(0);
@@ -527,13 +517,6 @@ public class Main implements Log.Callback {
 		
 		for (int i = 0 ; i < this.nThreads; i++) {
 			RWTask rt;
-			/*if (args.validate) {
-				int tstart = this.startKey + ((int) (this.nKeys*(((float) i)/this.nThreads)));			
-				int tkeys = (int) (this.nKeys*(((float) (i+1))/this.nThreads)) - (int) (this.nKeys*(((float) i)/this.nThreads));
-				rt = new RWTaskSync(client, args, counters, tstart, tkeys);
-			} else {
-				rt = new RWTaskSync(client, args, counters, this.startKey, this.nKeys);
-			}*/
 			rt = new RWTaskSync(client, args, counters, this.startKey, this.nKeys);
 			tasks[i] = rt;
 			es.execute(rt);                                  
@@ -543,16 +526,6 @@ public class Main implements Log.Callback {
 	}
 
 	private void collectRWStats(RWTask[] tasks, AsyncClient client) throws Exception {		
-		// wait for all the tasks to finish setting up for validation
-		/*if (args.validate) {
-			while(counters.loadValuesFinishedTasks.get() < this.nThreads) {
-				Thread.sleep(1000);
-				//System.out.println("tasks done = "+counters.loadValuesFinishedTasks.get()+ ", g_ntasks = "+g_ntasks);
-			}
-			// set flag that everyone is ready - this will allow the individual tasks to go
-			counters.loadValuesFinished.set(true);
-		}*/
-		
 		long transactionTotal = 0;
 
 		while (true) {

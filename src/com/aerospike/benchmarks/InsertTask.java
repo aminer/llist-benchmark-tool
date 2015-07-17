@@ -17,18 +17,13 @@
 
 package com.aerospike.benchmarks;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.ResultCode;
-import com.aerospike.client.Value;
 import com.aerospike.client.util.Util;
 
 public abstract class InsertTask implements Runnable {
-
 	final Arguments args;
 	final int keyStart;
 	final int keyCount;
@@ -47,11 +42,6 @@ public abstract class InsertTask implements Runnable {
 			Bin[] bins;
 			
 			for (int i = 0; i < keyCount; i++) {
-				/*if (i % 100 == 0) {
-					System.out.println("insert task i = " + i);
-				}*/
-				
-				
 				//for (int j = 0; j < args.itemCount; j++) {
 					try {
 						//System.out.println("type: " + DBObjectSpec.type);
@@ -106,7 +96,6 @@ public abstract class InsertTask implements Runnable {
 					}
 				}
 			//}
-			//System.out.println("Thread finished");
 		}
 		catch (Exception ex) {
 			System.out.println("Insert task error: " + ex.getMessage());
@@ -135,6 +124,5 @@ public abstract class InsertTask implements Runnable {
 		}
 	}
 	
-	//protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
-	protected abstract void largeListAdd(Key key, Bin[] value) throws AerospikeException;
+	protected abstract void largeListAdd(Key key, Bin[] values) throws AerospikeException;
 }

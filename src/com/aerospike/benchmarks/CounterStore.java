@@ -21,11 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class CounterStore {
-	
+public class CounterStore {	
 	Current write = new Current();
 	Current read = new Current();
-	
+
 	AtomicLong periodBegin = new AtomicLong();	
 	AtomicInteger readNotFound = new AtomicInteger();
 	AtomicInteger valueMismatchCnt = new AtomicInteger();

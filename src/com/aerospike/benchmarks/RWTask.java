@@ -96,7 +96,7 @@ public abstract class RWTask implements Runnable {
 	}
 	
 	private void readUpdate() {
-		int key = random.nextInt(keyCount + args.itemCount);
+		int key = random.nextInt(args.itemCount);
 		if (random.nextInt(100) < args.readPct) {
 			//boolean isMultiBin = random.nextInt(100) < args.readMultiBinPct;
 			//doRead(key, isMultiBin);
@@ -106,7 +106,7 @@ public abstract class RWTask implements Runnable {
 			//boolean isMultiBin = random.nextInt(100) < args.writeMultiBinPct;
 			// Single record write.
 			//doWrite(key, isMultiBin);
-			doRead(key, false);
+			doWrite(key, false);
 		}		
 	}
 	
@@ -115,7 +115,7 @@ public abstract class RWTask implements Runnable {
 	 */
 	protected void doWrite(int keyIdx, boolean multiBin) {
 		Bin[] bins = args.getLDTBins(random, multiBin);
-		Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
+		Key key = new Key(args.namespace, args.setName, keyStart + random.nextInt(keyCount));
 		
 		try {
 			if (args.updateOne) {
@@ -124,9 +124,8 @@ public abstract class RWTask implements Runnable {
 					// Create entry
 					Map<String, Value> entry = new HashMap<String, Value>();
 					entry.put("key", Value.get(keyStart + keyIdx));
-					
+			
 					for (int i = 0; i < DBObjectSpec.mapValCount; i++) {
-						bins = args.getLDTBins(random, multiBin);
 						entry.put("value" + i, bins[random.nextInt(args.itemCount)].value);
 					}
 		        	
@@ -139,20 +138,21 @@ public abstract class RWTask implements Runnable {
 			}
 			else {
 				// Pick '%' items and update each one.
-				for (int i = 0; i < (int) Math.ceil((args.itemCount * args.updatePct) / 100.0); i++) {
+				int itemsToUpdate = (int) Math.ceil((args.itemCount * keyCount * args.updatePct) / 100.0); 
+				for (int i = 0; i < itemsToUpdate; i++) {
 					if (DBObjectSpec.type == 'M') {
 						// Update 1 item picked randomly.
 						// Create entry
 						Map<String, Value> entry = new HashMap<String, Value>();
-						entry.put("key", Value.get(keyStart + keyIdx));
+						entry.put("key", Value.get(keyStart + i));
 						
+						// Update all entries for that item
 						for (int j = 0; j < DBObjectSpec.mapValCount; j++) {
-							bins = args.getLDTBins(random, multiBin);
-							entry.put("value" + j, bins[random.nextInt(args.itemCount)].value);
+							entry.put("value" + j, bins[0].value); // Get the first random value (an arbitrary choice)
 						}
 			        	
 			        	//System.out.println("******* Item " + " Inserting: " + Value.get(entry));
-			        	largeListUpdate(key, Value.get(entry)); 
+			        	largeListUpdate(key, Value.get(entry));
 					}
 					else {
 						bins = args.getLDTBins(random, multiBin);
@@ -174,7 +174,7 @@ public abstract class RWTask implements Runnable {
 	 */
 	protected void doRead(int keyIdx, boolean multiBin) {
 		try {
-			Key key = new Key(args.namespace, args.setName, keyStart + keyIdx);
+			Key key = new Key(args.namespace, args.setName, keyStart + random.nextInt(keyCount));
 			
 			if (args.updateOne) {
 				largeListGet(key, 1);

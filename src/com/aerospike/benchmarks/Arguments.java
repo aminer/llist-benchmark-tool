@@ -30,8 +30,6 @@ public class Arguments {
 	public Policy readPolicy;
 	public WritePolicy writePolicy;
 	public int readPct;
-	//public int readMultiBinPct;
-	//public int writeMultiBinPct;
 	public int throughput;
 	public long transactionLimit;
 	public boolean debug;
@@ -68,7 +66,6 @@ public class Arguments {
 	}
     
 	private static Value genValue(RandomShift random, DBObjectSpec spec) {
-		//StringBuilder sb = null;
 		switch (DBObjectSpec.type) {
 		case 'I':
 			return Value.get(random.nextInt());
@@ -79,7 +76,6 @@ public class Arguments {
             	// Append ASCII value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
-           System.out.println("/////////////Returning: " + Value.get(sb.toString()));
 			return Value.get(sb.toString());
 			
 		case 'M':

@@ -51,20 +51,23 @@ public final class InsertTaskSync extends InsertTask {
 		}
 	}
 
-	private void largeListAdd(Key key, Bin[] val, long timestamp) throws AerospikeException {
+	private void largeListAdd(Key key, Bin[] values, long timestamp) throws AerospikeException {
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
-		//System.out.println("????????Inserting: " + Value.get(value));
 		
 		try {
 			for (int i = 0; i < args.itemCount; i++) {
 				if (DBObjectSpec.type == 'M') {
 					Map<String, Value> entry = new HashMap<String, Value>();
 					entry.put("key", Value.get(keyStart + i));
-					entry.put("value" + i, val[i].value);
+					
+					for (int j = 0; j < DBObjectSpec.mapValCount; j++) {
+						entry.put("value" + j, values[i].value);
+					}
+					//System.out.println("***********" + entry.size());
 					list.add(Value.get(entry));
 				}
 				else {
-					list.add(val[i].value);
+					list.add(values[i].value);
 				}
 			}
 			
@@ -72,7 +75,7 @@ public final class InsertTaskSync extends InsertTask {
 			System.out.println(e.getMessage());
 		}
 		
-		list.setPageSize(args.pageSize); // Set the page size.
+		list.setPageSize(args.pageSize);
 		//System.out.println("LLIST CONFIG: " + list.size() + "*********** " + list.getConfig());
 		//System.out.println("LLIST CONFIG: *********** " + list.getConfig());
 	}
