@@ -94,13 +94,13 @@ public class Main implements Log.Callback {
 			);
 		
 		options.addOption("o", "objectSpec", true, 
-			"I | S:<size> | M:<msize>:<type>:<size>\n" +
+			"I | S:<size> | M:<type>:<size>\n" +
 			"Set the type of object(s) to use in Aerospike transactions. Type can be 'I' " +
 			"for integer, 'S' for string, or 'M' for map. If type is 'I' (integer), " + 
 			"do not set a size (integers are always 8 bytes). If type is 'S' " + 
 			"(string), this value represents the length of the string. If type is 'M' " + 
-			"(map), msize (map size), is the number of values inside the map, type represents the type of data " +
-			"which can be 'I' or 'S', and size represents the length of the string if type is 'S'."
+			"(map), type represents the type of data which can be 'I' or 'S', and size " +
+			"represents the length of the string if type is 'S'."
 			);
 		options.addOption("R", "random", false, 
 			"Use dynamically generated random bin values instead of default static fixed bin values."
@@ -115,7 +115,7 @@ public class Main implements Log.Callback {
 			"Set the desired workload.\n\n" +  
 			"   -w I sets a linear 'insert' workload.\n\n" +
 			"   -w RU,o,80 picks one item randomly and sets a random read-update workload with 80% reads and 20% writes.\n\n" + 
-			"   -w RU,50,80 for 50% of items, sets a random read-update workload with 80% reads and 20% writes."
+			"   -w RU,50,40 for 50% of items, sets a random read-update workload with 40% reads and 60% writes."
 			);
 		options.addOption("g", "throughput", true, 
 			"Set a target transactions per second for the client. The client should not exceed this " + 
@@ -150,7 +150,7 @@ public class Main implements Log.Callback {
 		options.addOption("u", "usage", false, "Print usage.");
 
 		options.addOption("PS", "pageSize", true, "Page size in kilobyte. Default: 4K");
-		options.addOption("IC", "itemCount", true, "Number of items in the LDT. Default: 100");
+		options.addOption("IC", "itemCount", true, "Number of items in LDT. Default: 100");
 		options.addOption("IS", "itemSize", true, "Item size in byte. Default: 8");
 		
 		// Parse the command line arguments.
@@ -169,7 +169,7 @@ public class Main implements Log.Callback {
 		
 		args.readPolicy = clientPolicy.readPolicyDefault;
         args.writePolicy = clientPolicy.writePolicyDefault;
-
+       
         if (line.hasOption("hosts")) {
 			this.hosts = line.getOptionValue("hosts").split(",");
 		} 
@@ -237,7 +237,8 @@ public class Main implements Log.Callback {
 
 		if (line.hasOption("keys")) {
 			this.nKeys = Integer.parseInt(line.getOptionValue("keys"));
-		} else {
+		} 
+		else {
 			this.nKeys = 100000;
 		}
 
@@ -266,7 +267,7 @@ public class Main implements Log.Callback {
 						//System.out.println("********" + DBObjectSpec.mapValCount);
 					} else {
 						DBObjectSpec.mapValCount = (int) Math.ceil((float) args.itemSize/8); // How many entries inside the map.
-						System.out.println("********" + DBObjectSpec.mapValCount);
+						System.out.println("mapValCount: " + DBObjectSpec.mapValCount);
 					}
 				}
 				
@@ -480,6 +481,8 @@ public class Main implements Log.Callback {
 		//int keysPerTask = this.nKeys / ntasks + 1;
 		
 		int keysPerTask = this.nKeys / ntasks;
+		System.out.println("start: " + this.startKey);
+		System.out.println("ntasks: " + ntasks);
 		System.out.println("keysPerTask: " + keysPerTask);
 		for (int i = 0; i < ntasks; i++) {
 			InsertTask it = new InsertTaskSync(client, args, counters, start, keysPerTask); 			
@@ -492,8 +495,10 @@ public class Main implements Log.Callback {
 
 	private void collectInsertStats() throws Exception {	
 		int total = 0;
+		//int max = this.nKeys * args.itemCount;
+		int max = this.nKeys;
 		
-		while (total < this.nKeys) {
+		while (total < max) {
 			long time = System.currentTimeMillis();
 			
 			int	numWrites = this.counters.write.count.getAndSet(0);

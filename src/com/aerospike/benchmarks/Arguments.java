@@ -17,7 +17,6 @@
 
 package com.aerospike.benchmarks;
 
-
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.Policy;
@@ -69,18 +68,18 @@ public class Arguments {
 	}
     
 	private static Value genValue(RandomShift random, DBObjectSpec spec) {
-		StringBuilder sb;
+		//StringBuilder sb = null;
 		switch (DBObjectSpec.type) {
 		case 'I':
 			return Value.get(random.nextInt());
 			
 		case 'S':
-			sb = new StringBuilder(DBObjectSpec.size);
+			StringBuilder sb = new StringBuilder(DBObjectSpec.size);
             for (int i = 0; i < DBObjectSpec.size; i++) {
             	// Append ASCII value between ordinal 33 and 127.
                 sb.append((char)(random.nextInt(94) + 33));
             }
-           
+           System.out.println("/////////////Returning: " + Value.get(sb.toString()));
 			return Value.get(sb.toString());
 			
 		case 'M':

@@ -19,6 +19,7 @@ package com.aerospike.benchmarks;
 
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
 import com.aerospike.client.large.LargeList;
@@ -33,7 +34,7 @@ public final class InsertTaskSync extends InsertTask {
 		this.client = client;
 	}
 
-	protected void largeListAdd(Key key, Value value) throws AerospikeException {
+	protected void largeListAdd(Key key, Bin[] value) throws AerospikeException {
 		long begin = System.currentTimeMillis();
 		if (counters.write.latency != null) {
 			largeListAdd(key, value, begin);
@@ -47,12 +48,15 @@ public final class InsertTaskSync extends InsertTask {
 		}
 	}
 
-	private void largeListAdd(Key key, Value value, long timestamp) throws AerospikeException {
+	private void largeListAdd(Key key, Bin[] value, long timestamp) throws AerospikeException {
 		LargeList list = client.getLargeList(args.writePolicy, key, "listltracker");
 		//System.out.println("????????Inserting: " + Value.get(value));
 		
 		try {
-			list.add(value);
+			for (int i = 0; i < args.itemCount; i++) {
+				list.add(value[i].value);
+			}
+			
 		} catch (AerospikeException e) {
 			System.out.println(e.getMessage());
 		}

@@ -45,33 +45,44 @@ public abstract class InsertTask implements Runnable {
 		try {			
 			RandomShift random = new RandomShift();
 			Bin[] bins;
+			
 			for (int i = 0; i < keyCount; i++) {
-				for (int j = 0; j < args.itemCount; j++) {
+				/*if (i % 100 == 0) {
+					System.out.println("insert task i = " + i);
+				}*/
+				
+				
+				//for (int j = 0; j < args.itemCount; j++) {
 					try {
 						//System.out.println("type: " + DBObjectSpec.type);
 						//System.out.println("size " + objarr[1].substring(0, objarr[1].length() - 1));
 						//System.out.println("type " + objarr[1].charAt(objarr[1].length() - 1));
 				
-						Key key = new Key(args.namespace, args.setName, keyStart + i + j);
+						Key key = new Key(args.namespace, args.setName, keyStart + i);
 						
 						// Add a fixed number of values (using DBObjectSpec.mapValCount).
 						if (DBObjectSpec.type == 'M') {
 							// Add entry
-							Map<String, Value> entry = new HashMap<String, Value>();
-							entry.put("key", Value.get(keyStart + i + j));
+							bins = args.getLDTBins(random, true);
 							
-							for (int k = 0; k < DBObjectSpec.mapValCount; k++) {
+							
+							Map<String, Value> entry = new HashMap<String, Value>();
+							entry.put("key", Value.get(keyStart + i));
+							//entry.put("value" + i, bins[j].value);
+							
+							/*for (int k = 0; k < DBObjectSpec.mapValCount; k++) {
 								bins = args.getLDTBins(random, true);
 								entry.put("value" + k, bins[j].value);
-							}
+							}*/
 				        	
 				        	//System.out.println("******* Item " + j + " Inserting: " + Value.get(entry));
-				        	largeListAdd(key, Value.get(entry)); 
+				        	largeListAdd(key, bins); 
 						}
 						else {
 							bins = args.getLDTBins(random, true);
-							System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
-							largeListAdd(key, bins[j].value); 
+							//System.out.println("******* Item " + j + " Inserting: " + bins[j].value);
+							largeListAdd(key, bins); 
+							//System.out.println("+++++++++++Key:" + (keyStart + i));
 						}
 					}
 					catch (AerospikeException ae) {
@@ -94,7 +105,8 @@ public abstract class InsertTask implements Runnable {
 						}
 					}
 				}
-			}
+			//}
+			//System.out.println("Thread finished");
 		}
 		catch (Exception ex) {
 			System.out.println("Insert task error: " + ex.getMessage());
@@ -123,5 +135,6 @@ public abstract class InsertTask implements Runnable {
 		}
 	}
 	
-	protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
+	//protected abstract void largeListAdd(Key key, Value value) throws AerospikeException;
+	protected abstract void largeListAdd(Key key, Bin[] value) throws AerospikeException;
 }
